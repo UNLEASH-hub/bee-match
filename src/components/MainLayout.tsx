@@ -5,6 +5,7 @@ import BottomNav from './navigation/BottomNav'
 import MapSection from './map/MapSection'
 import MessagesScreen from './messages/MessagesScreen'
 import NotificationsScreen from './notifications/NotificationsScreen'
+import SettingsScreen from './settings/SettingsScreen'
 
 const tabLabels: Record<Tab, string> = {
   notifications: '通知',
@@ -45,7 +46,7 @@ export default function MainLayout() {
         {activeTab === 'messages'      && <MessagesScreen initialUser={messageTarget} />}
         {activeTab === 'notifications' && <NotificationsScreen />}
         {activeTab === 'events'        && <PlaceholderContent tab={activeTab} />}
-        {activeTab === 'settings'      && <PlaceholderContent tab={activeTab} />}
+        {activeTab === 'settings'      && <SettingsScreen />}
       </main>
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
