@@ -23,15 +23,13 @@ const defaultRegisterData: RegisterData = {
 
 export default function App() {
   const [view, setView] = useState<View>('login')
-  const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [registerData, setRegisterData] = useState<RegisterData>(defaultRegisterData)
 
   function updateRegisterData(partial: Partial<RegisterData>) {
     setRegisterData(prev => ({ ...prev, ...partial }))
   }
 
-  function handleRegistrationComplete(user: User) {
-    setCurrentUser(user)
+  function handleRegistrationComplete(_user: User) {
     setView('main')
   }
 
