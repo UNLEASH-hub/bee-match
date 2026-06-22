@@ -19,6 +19,7 @@ export const mockUsers: User[] = [
     sexuality: 'gay',
     position: 'riba',
     lookingFor: ['friends', 'romance'],
+    locationMode: 'shouting',
   },
   {
     id: 'user-2',
@@ -34,6 +35,7 @@ export const mockUsers: User[] = [
     sexuality: 'gay',
     position: 'tachi',
     lookingFor: ['romance'],
+    locationMode: 'shouting',
   },
   {
     id: 'user-3',
@@ -49,6 +51,7 @@ export const mockUsers: User[] = [
     sexuality: 'bi',
     position: 'uke',
     lookingFor: ['friends'],
+    locationMode: 'gps',
   },
   {
     id: 'user-4',
@@ -64,6 +67,7 @@ export const mockUsers: User[] = [
     sexuality: 'gay',
     position: 'vanilla',
     lookingFor: ['friends', 'other'],
+    locationMode: 'gps',
   },
   {
     id: 'user-5',
@@ -79,6 +83,7 @@ export const mockUsers: User[] = [
     sexuality: 'gay',
     position: 'tachi',
     lookingFor: ['romance'],
+    locationMode: 'arbitrary',
   },
   {
     id: 'user-6',
@@ -94,6 +99,7 @@ export const mockUsers: User[] = [
     sexuality: 'bi',
     position: 'riba',
     lookingFor: ['friends', 'romance'],
+    locationMode: 'arbitrary',
   },
   {
     id: 'user-7',
@@ -109,6 +115,7 @@ export const mockUsers: User[] = [
     sexuality: 'gay',
     position: 'tachi',
     lookingFor: ['romance', 'other'],
+    locationMode: 'gps',
   },
   {
     id: 'user-8',
@@ -124,6 +131,7 @@ export const mockUsers: User[] = [
     sexuality: 'gay',
     position: 'uke',
     lookingFor: ['friends'],
+    locationMode: 'arbitrary',
   },
 ]
 

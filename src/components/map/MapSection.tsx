@@ -52,7 +52,14 @@ export default function MapSection({ onNavigateToMessages }: Props) {
       </div>
 
       {subTab === 'map' && <MapView onUserSelect={setProfileUser} flyToTarget={flyToTarget} />}
-      {subTab === 'shout' && <ShoutScreen />}
+      {subTab === 'shout' && (
+        <ShoutScreen
+          onShowOnMap={(user) => {
+            setFlyToTarget({ lat: user.location.lat, lng: user.location.lng, zoom: 16 })
+            setSubTab('map')
+          }}
+        />
+      )}
     </div>
   )
 }

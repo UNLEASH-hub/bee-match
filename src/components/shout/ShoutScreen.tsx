@@ -1,7 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { mockShouts, currentUser } from '../../data/mockUsers'
 import { formatTime } from '../../lib/utils/format'
-import type { Shout } from '../../types'
+import type { Shout, User } from '../../types'
+
+interface ShoutScreenProps {
+  onShowOnMap?: (user: User) => void
+}
 
 function HeartIcon({ filled }: { filled: boolean }) {
   return filled ? (
@@ -37,52 +41,97 @@ function MegaphoneIcon() {
   )
 }
 
-function ShoutCard({ shout }: { shout: Shout }) {
+function ShoutCard({ shout, onShowOnMap }: { shout: Shout; onShowOnMap?: (user: User) => void }) {
   const [liked, setLiked] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
   const u = shout.user
 
+  function handleHeartClick() {
+    if (liked) {
+      setLiked(false)
+    } else {
+      setShowConfirm(true)
+    }
+  }
+
   return (
-    <div className="flex items-start gap-3 px-4 py-4 border-b border-gray-800">
-      <div className="relative flex-shrink-0">
-        <img src={u.avatarUrl} alt={u.name} className="w-12 h-12 rounded-full object-cover" />
-        {u.isOnline && (
-          <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-gray-950" />
-        )}
+    <>
+      <div className="flex items-start gap-3 px-4 py-4 border-b border-gray-800">
+        <div className="relative flex-shrink-0">
+          <img src={u.avatarUrl} alt={u.name} className="w-12 h-12 rounded-full object-cover" />
+          {u.isOnline && (
+            <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-gray-950" />
+          )}
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <p className="text-white text-sm leading-relaxed">{shout.message}</p>
+          <p className="text-gray-500 text-xs mt-1.5">
+            {u.name}
+            {u.height && ` · ${u.height}cm`}
+            {u.weight && ` · ${u.weight}kg`}
+            {` · ${u.age}歳`}
+            <span className="ml-2 text-gray-600">{formatTime(shout.createdAt)}</span>
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-2.5 flex-shrink-0 pt-0.5">
+          <button
+            onClick={handleHeartClick}
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors active:scale-90 ${
+              liked ? 'bg-rose-500/20' : 'bg-gray-800'
+            }`}
+            aria-label="会いたい"
+          >
+            <HeartIcon filled={liked} />
+          </button>
+          <button
+            onClick={() => onShowOnMap?.(u)}
+            className="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 active:bg-gray-700 transition-colors"
+            aria-label="位置を確認"
+          >
+            <ReticleIcon />
+          </button>
+        </div>
       </div>
 
-      <div className="flex-1 min-w-0">
-        <p className="text-white text-sm leading-relaxed">{shout.message}</p>
-        <p className="text-gray-500 text-xs mt-1.5">
-          {u.name}
-          {u.height && ` · ${u.height}cm`}
-          {u.weight && ` · ${u.weight}kg`}
-          {` · ${u.age}歳`}
-          <span className="ml-2 text-gray-600">{formatTime(shout.createdAt)}</span>
-        </p>
-      </div>
-
-      <div className="flex flex-col gap-2.5 flex-shrink-0 pt-0.5">
-        <button
-          onClick={() => setLiked(v => !v)}
-          className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors active:scale-90 ${
-            liked ? 'bg-rose-500/20' : 'bg-gray-800'
-          }`}
-          aria-label="会いたい"
+      {/* 「会いたい」確認モーダル */}
+      {showConfirm && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-8"
+          onClick={() => setShowConfirm(false)}
         >
-          <HeartIcon filled={liked} />
-        </button>
-        <button
-          className="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 active:bg-gray-700 transition-colors"
-          aria-label="位置を確認"
-        >
-          <ReticleIcon />
-        </button>
-      </div>
-    </div>
+          <div
+            className="w-full bg-gray-900 border border-gray-700 rounded-2xl p-6 flex flex-col gap-5"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex flex-col items-center gap-2 text-center">
+              <span className="text-3xl">❤️</span>
+              <p className="text-white font-semibold text-base">「会いたい」を送りますか？</p>
+              <p className="text-gray-400 text-sm">{u.name}さんに「会いたい」を送ります</p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="flex-1 py-3 rounded-xl bg-gray-800 text-gray-300 text-sm font-medium"
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={() => { setLiked(true); setShowConfirm(false) }}
+                className="flex-1 py-3 rounded-xl bg-rose-500 text-white text-sm font-semibold"
+              >
+                送る ❤️
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 
-export default function ShoutScreen() {
+export default function ShoutScreen({ onShowOnMap }: ShoutScreenProps) {
   const [shouts, setShouts] = useState<Shout[]>(mockShouts)
   const [modalOpen, setModalOpen] = useState(false)
   const [message, setMessage] = useState('')
@@ -116,7 +165,7 @@ export default function ShoutScreen() {
           <h1 className="text-white text-xl font-bold">シャウト</h1>
         </div>
         {shouts.map(shout => (
-          <ShoutCard key={shout.id} shout={shout} />
+          <ShoutCard key={shout.id} shout={shout} onShowOnMap={onShowOnMap} />
         ))}
       </div>
 
@@ -139,7 +188,6 @@ export default function ShoutScreen() {
             className="w-full bg-gray-900 rounded-t-2xl p-5 pb-8"
             onClick={e => e.stopPropagation()}
           >
-            {/* ヘッダー */}
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-white font-bold text-base">シャウトする</h2>
               <button
@@ -150,7 +198,6 @@ export default function ShoutScreen() {
               </button>
             </div>
 
-            {/* 入力欄 */}
             <textarea
               ref={textareaRef}
               value={message}
@@ -164,7 +211,6 @@ export default function ShoutScreen() {
               {message.length} / 200
             </div>
 
-            {/* 叫ぶボタン */}
             <button
               onClick={handleShout}
               disabled={!message.trim()}

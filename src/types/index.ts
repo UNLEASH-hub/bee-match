@@ -14,6 +14,7 @@ export interface User {
   position?: 'tachi' | 'uke' | 'riba' | 'vanilla' | 'unknown'
   lookingFor?: ('friends' | 'romance' | 'other')[]
   phone?: string
+  locationMode?: 'gps' | 'arbitrary' | 'shouting'
 }
 
 export interface Message {
