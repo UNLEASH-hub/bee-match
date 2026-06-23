@@ -6,30 +6,8 @@ import MapSection from './map/MapSection'
 import MessagesScreen from './messages/MessagesScreen'
 import NotificationsScreen from './notifications/NotificationsScreen'
 import SettingsScreen from './settings/SettingsScreen'
+import EventsScreen from './events/EventsScreen'
 
-const tabLabels: Record<Tab, string> = {
-  notifications: '通知',
-  events: 'イベント',
-  map: '地図',
-  messages: 'メッセージ',
-  settings: '設定',
-}
-
-function PlaceholderContent({ tab }: { tab: Tab }) {
-  return (
-    <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center px-6">
-      <span className="text-gray-600 text-6xl">
-        {tab === 'notifications' && '🔔'}
-        {tab === 'events'        && '📅'}
-        {tab === 'map'           && '🗺️'}
-        {tab === 'messages'      && '💬'}
-        {tab === 'settings'      && '⚙️'}
-      </span>
-      <p className="text-gray-400 font-medium">{tabLabels[tab]}</p>
-      <p className="text-gray-600 text-sm">近日実装予定</p>
-    </div>
-  )
-}
 
 export default function MainLayout() {
   const [activeTab, setActiveTab] = useState<Tab>('map')
@@ -45,7 +23,7 @@ export default function MainLayout() {
         )}
         {activeTab === 'messages'      && <MessagesScreen initialUser={messageTarget} />}
         {activeTab === 'notifications' && <NotificationsScreen />}
-        {activeTab === 'events'        && <PlaceholderContent tab={activeTab} />}
+        {activeTab === 'events'        && <EventsScreen />}
         {activeTab === 'settings'      && <SettingsScreen />}
       </main>
 

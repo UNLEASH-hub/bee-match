@@ -1,0 +1,227 @@
+import type { BeeEvent, EventApplication, EventMessage } from '../types'
+import { mockUsers, currentUser } from './mockUsers'
+
+const h = (hours: number) => new Date(Date.now() + hours * 3_600_000).toISOString()
+const d = (days: number)  => new Date(Date.now() + days  * 86_400_000).toISOString()
+const ago = (hours: number) => new Date(Date.now() - hours * 3_600_000).toISOString()
+
+const [kenji, ryu, taka, hiro, sota, nao, dai, shin] = mockUsers
+
+// 申請データ（evt-2: currentUser が主催 → 他ユーザーが申請）
+const appsForEvt2: EventApplication[] = [
+  {
+    id: 'app-1', eventId: 'evt-2', applicant: taka,
+    message: 'よろしくお願いします！', status: 'pending',
+    appliedAt: ago(2),
+  },
+  {
+    id: 'app-2', eventId: 'evt-2', applicant: hiro,
+    message: 'カフェ好きなので参加したいです', status: 'pending',
+    appliedAt: ago(1),
+  },
+]
+
+// evt-1 の申請（kenji が主催、currentUser が申請中のデモ）
+const appsForEvt1: EventApplication[] = [
+  {
+    id: 'app-3', eventId: 'evt-1', applicant: currentUser,
+    message: '', status: 'pending',
+    appliedAt: ago(0.5),
+  },
+]
+
+export const mockEvents: BeeEvent[] = [
+  // ── 今夜 ──────────────────────────────────────────────
+  {
+    id: 'evt-1',
+    category: 'drinking',
+    title: '金曜の二丁目飲み会🍺',
+    description: '新宿二丁目のバーで気軽に飲みましょう！初参加大歓迎です。お酒が好きな方、ゆるく話せる方をお待ちしています。経験不問、気軽に来てください。',
+    location: { type: 'venue', name: 'AiBar 新宿', address: '東京都新宿区新宿2-11-4', lat: 35.6893, lng: 139.7035 },
+    startAt: h(3), endAt: h(6),
+    capacity: 8,
+    host: kenji,
+    approvalMode: 'approval',
+    conditions: ['お酒OK', '割り勘'],
+    tags: ['#30代中心', '#初参加歓迎'],
+    status: 'published',
+    interestedCount: 12,
+    participants: [kenji, ryu],
+    applications: appsForEvt1,
+    visibility: 'public',
+    createdAt: ago(24),
+  },
+  {
+    id: 'evt-2',
+    category: 'cafe',
+    title: '渋谷でまったりカフェ会☕',
+    description: '渋谷のおしゃれなカフェでまったり話しましょう。音楽、映画、趣味の話など何でもOK。ゆったりとした時間を共有したいです。',
+    location: { type: 'area', name: '渋谷駅周辺', lat: 35.6580, lng: 139.7016 },
+    startAt: h(2), endAt: h(4),
+    capacity: 6,
+    host: currentUser,
+    approvalMode: 'approval',
+    conditions: ['初参加歓迎'],
+    tags: ['#まったり', '#話好き'],
+    status: 'published',
+    interestedCount: 8,
+    participants: [currentUser, ryu],
+    applications: appsForEvt2,
+    notes: '雨天時は店内の席を確保しています',
+    visibility: 'public',
+    createdAt: ago(48),
+  },
+  {
+    id: 'evt-3',
+    category: 'night',
+    title: '六本木ナイト🌙 クラブ遊び',
+    description: '六本木でクラブ巡りしましょう！ダンスが好きな人、初めてでも歓迎。深夜まで楽しみます。',
+    location: { type: 'area', name: '六本木エリア', lat: 35.6627, lng: 139.7317 },
+    startAt: h(5), endAt: h(12),
+    capacity: 10,
+    host: sota,
+    approvalMode: 'open',
+    conditions: ['お酒OK'],
+    tags: ['#夜遊び', '#ダンス'],
+    status: 'published',
+    interestedCount: 20,
+    participants: [sota, kenji, ryu, currentUser],
+    applications: [],
+    visibility: 'public',
+    createdAt: ago(12),
+  },
+  // ── 今週 ──────────────────────────────────────────────
+  {
+    id: 'evt-4',
+    category: 'meal',
+    title: '恵比寿でイタリアン🍴',
+    description: '恵比寿のおすすめイタリアンレストランでディナーを楽しみましょう。美食家・食べるの好きな方歓迎！ワインも楽しみましょう。',
+    location: { type: 'venue', name: 'Ristorante HIRO 恵比寿', address: '東京都渋谷区恵比寿4-20-3', lat: 35.6469, lng: 139.7098 },
+    startAt: d(2), endAt: new Date(new Date(d(2)).getTime() + 2 * 3_600_000).toISOString(),
+    capacity: 6,
+    host: taka,
+    approvalMode: 'approval',
+    ageMin: 25,
+    conditions: ['お酒OK', '割り勘'],
+    tags: ['#グルメ', '#ワイン好き'],
+    status: 'published',
+    interestedCount: 7,
+    participants: [taka, kenji],
+    applications: [],
+    visibility: 'public',
+    createdAt: ago(36),
+  },
+  {
+    id: 'evt-5',
+    category: 'activity',
+    title: '代々木公園でランニング💪',
+    description: '代々木公園を一緒にランニングしましょう！距離は参加者に合わせます。運動が好きな方、健康志向の方大歓迎。終わった後はカフェにも行きます。',
+    location: { type: 'venue', name: '代々木公園 陸上競技場前', lat: 35.6714, lng: 139.6958 },
+    startAt: d(4), endAt: new Date(new Date(d(4)).getTime() + 2 * 3_600_000).toISOString(),
+    capacity: 10,
+    host: nao,
+    approvalMode: 'approval',
+    conditions: ['初参加歓迎'],
+    tags: ['#ランニング', '#健康'],
+    status: 'published',
+    interestedCount: 15,
+    participants: [nao, dai],
+    applications: [],
+    visibility: 'public',
+    createdAt: ago(72),
+  },
+  // ── 今後 ──────────────────────────────────────────────
+  {
+    id: 'evt-6',
+    category: 'play',
+    title: 'ボードゲーム会🎮',
+    description: '秋葉原のボードゲームカフェで一日遊びましょう！初心者から経験者まで楽しめるゲームを用意します。ルール説明もするので初めてでも大丈夫。',
+    location: { type: 'venue', name: 'GameBase Tokyo 秋葉原', address: '東京都千代田区外神田1-15-16', lat: 35.6984, lng: 139.7731 },
+    startAt: d(10), endAt: new Date(new Date(d(10)).getTime() + 5 * 3_600_000).toISOString(),
+    capacity: 8,
+    host: dai,
+    approvalMode: 'approval',
+    conditions: ['初参加歓迎', '割り勘'],
+    tags: ['#ボードゲーム', '#ゲーム好き'],
+    status: 'published',
+    interestedCount: 18,
+    participants: [dai],
+    applications: [],
+    visibility: 'public',
+    createdAt: ago(24),
+  },
+  {
+    id: 'evt-7',
+    category: 'drinking',
+    title: '上野クラフトビール🍺',
+    description: '上野のクラフトビール専門店で飲み比べしましょう。ビール好きな方、新しいビールを発見したい方歓迎！気軽に楽しめる雰囲気です。',
+    location: { type: 'venue', name: 'Craft Beer Works UENO', address: '東京都台東区上野6-14-2', lat: 35.7094, lng: 139.7745 },
+    startAt: d(14), endAt: new Date(new Date(d(14)).getTime() + 3 * 3_600_000).toISOString(),
+    capacity: 8,
+    host: shin,
+    approvalMode: 'approval',
+    conditions: ['お酒OK'],
+    tags: ['#ビール', '#クラフトビール'],
+    status: 'published',
+    interestedCount: 9,
+    participants: [shin],
+    applications: [],
+    visibility: 'public',
+    createdAt: ago(48),
+  },
+  {
+    id: 'evt-8',
+    category: 'meal',
+    title: '表参道ランチ会🍴',
+    description: '表参道のおしゃれなカフェでランチ会。新しい友達作りたい方歓迎。穏やかにゆったり過ごしましょう。',
+    location: { type: 'area', name: '表参道エリア', lat: 35.6653, lng: 139.7127 },
+    startAt: d(20), endAt: new Date(new Date(d(20)).getTime() + 2 * 3_600_000).toISOString(),
+    capacity: 6,
+    host: ryu,
+    approvalMode: 'approval',
+    conditions: ['初参加歓迎'],
+    tags: ['#ランチ', '#友達作り'],
+    status: 'published',
+    interestedCount: 5,
+    participants: [ryu],
+    applications: [],
+    visibility: 'public',
+    createdAt: ago(12),
+  },
+]
+
+// グループチャット初期メッセージ（evt-3: currentUser が参加済み）
+export const mockEventMessages: Record<string, EventMessage[]> = {
+  'evt-3': [
+    {
+      id: 'em-s0', sender: null,
+      content: '六本木ナイト🌙 のグループチャットが開始されました',
+      messageType: 'system', createdAt: ago(10),
+    },
+    {
+      id: 'em-1', sender: sota,
+      content: 'みなさん、今夜よろしくお願いします！22時に六本木ヒルズ前に集合しましょう🌙',
+      messageType: 'user', createdAt: ago(4),
+    },
+    {
+      id: 'em-s1', sender: null,
+      content: 'Kenjiさんが参加しました',
+      messageType: 'system', createdAt: ago(3),
+    },
+    {
+      id: 'em-2', sender: kenji,
+      content: 'よろしく！楽しみにしてます🍺',
+      messageType: 'user', createdAt: ago(2.5),
+    },
+    {
+      id: 'em-3', sender: ryu,
+      content: '私も！服装は何でも大丈夫ですか？',
+      messageType: 'user', createdAt: ago(2),
+    },
+    {
+      id: 'em-4', sender: sota,
+      content: 'スマートカジュアルくらいがベストです😊 ドレスコードは特にないです',
+      messageType: 'user', createdAt: ago(1.5),
+    },
+  ],
+}

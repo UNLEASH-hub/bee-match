@@ -1,9 +1,19 @@
 import { useState, useCallback, useEffect } from 'react'
 import Map, { Marker, type ViewStateChangeEvent, type MarkerEvent } from 'react-map-gl/maplibre'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import type { User } from '../../types'
+import type { User, BeeEvent } from '../../types'
 import { mockUsers, currentUser } from '../../data/mockUsers'
+import { mockEvents } from '../../data/mockEvents'
+import { formatEventDate } from '../../lib/utils/format'
 import UserMarker from './UserMarker'
+
+const EVENT_EMOJI: Record<BeeEvent['category'], string> = {
+  drinking: '🍺', cafe: '☕', meal: '🍴', play: '🎮', activity: '💪', night: '🌙',
+}
+const EVENT_COLOR: Record<BeeEvent['category'], string> = {
+  drinking: '#f97316', cafe: '#84cc16', meal: '#a855f7',
+  play: '#3b82f6', activity: '#ef4444', night: '#6366f1',
+}
 
 interface FlyToTarget {
   lat: number
@@ -70,6 +80,17 @@ export default function MapView({ onUserSelect, flyToTarget }: Props) {
   const [gpsError, setGpsError] = useState('')
   const [showVipSheet, setShowVipSheet] = useState(false)
   const [selfLocationMode, setSelfLocationMode] = useState<'gps' | 'arbitrary' | undefined>(undefined)
+  const [selectedEvent, setSelectedEvent] = useState<BeeEvent | null>(null)
+  const [showFilterSheet, setShowFilterSheet] = useState(false)
+  const [eventFilter, setEventFilter] = useState<'today' | 'all'>('today')
+  const [showShouting, setShowShouting] = useState(true)
+  const [showGpsOnly, setShowGpsOnly] = useState(false)
+
+  const activeFilterCount = [
+    eventFilter === 'all',
+    !showShouting,
+    showGpsOnly,
+  ].filter(Boolean).length
 
   useEffect(() => {
     if (flyToTarget) {
@@ -131,6 +152,7 @@ export default function MapView({ onUserSelect, flyToTarget }: Props) {
         onMove={(evt: ViewStateChangeEvent) => setViewState(evt.viewState)}
         mapStyle={MAP_STYLE}
         style={{ width: '100%', height: '100%' }}
+        onClick={() => setSelectedEvent(null)}
       >
         {/* 自分のマーカー */}
         <Marker
@@ -142,7 +164,11 @@ export default function MapView({ onUserSelect, flyToTarget }: Props) {
         </Marker>
 
         {/* 他ユーザーのマーカー */}
-        {mockUsers.map(user => (
+        {mockUsers.filter(user => {
+          if (showGpsOnly && user.locationMode !== 'gps') return false
+          if (!showShouting && user.locationMode === 'shouting') return false
+          return true
+        }).map(user => (
           <Marker
             key={user.id}
             latitude={user.location.lat}
@@ -154,6 +180,35 @@ export default function MapView({ onUserSelect, flyToTarget }: Props) {
             }}
           >
             <UserMarker user={user} isSelected={false} />
+          </Marker>
+        ))}
+
+        {/* イベントマーカー */}
+        {mockEvents.filter(e => {
+          if (e.status === 'cancelled') return false
+          if (eventFilter === 'today') {
+            const d = new Date(e.startAt), now = new Date()
+            const end = new Date(now); end.setHours(23, 59, 59, 999)
+            return d >= now && d <= end
+          }
+          return true
+        }).map(ev => (
+          <Marker
+            key={ev.id}
+            latitude={ev.location.lat}
+            longitude={ev.location.lng}
+            anchor="bottom"
+            onClick={(e: MarkerEvent<MouseEvent>) => {
+              e.originalEvent.stopPropagation()
+              setSelectedEvent(ev)
+            }}
+          >
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center text-lg shadow-lg border-2 border-white cursor-pointer active:scale-90 transition-transform"
+              style={{ backgroundColor: EVENT_COLOR[ev.category] }}
+            >
+              {EVENT_EMOJI[ev.category]}
+            </div>
           </Marker>
         ))}
       </Map>
@@ -214,6 +269,52 @@ export default function MapView({ onUserSelect, flyToTarget }: Props) {
         </div>
       </div>
 
+      {/* フィルターボタン */}
+      <button
+        onClick={() => setShowFilterSheet(true)}
+        className="absolute top-3 left-4 z-10 flex items-center gap-1.5 bg-gray-900/90 border border-gray-700 rounded-full px-3 py-2 shadow-lg active:opacity-70"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-gray-300">
+          <line x1="4" y1="6" x2="20" y2="6" /><line x1="8" y1="12" x2="16" y2="12" /><line x1="11" y1="18" x2="13" y2="18" />
+        </svg>
+        <span className="text-gray-300 text-xs font-medium">フィルター</span>
+        {activeFilterCount > 0 && (
+          <span className="w-4 h-4 bg-amber-400 text-black text-[10px] font-bold rounded-full flex items-center justify-center">
+            {activeFilterCount}
+          </span>
+        )}
+      </button>
+
+      {/* イベントミニカード */}
+      {selectedEvent && (
+        <div className="absolute bottom-16 left-4 right-4 z-20">
+          <div className="bg-gray-900/95 border border-gray-700 rounded-2xl p-4 shadow-xl">
+            <div className="flex items-start gap-3">
+              <div
+                className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+                style={{ backgroundColor: EVENT_COLOR[selectedEvent.category] + '33' }}
+              >
+                {EVENT_EMOJI[selectedEvent.category]}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-semibold text-sm leading-snug">{selectedEvent.title}</p>
+                <p className="text-gray-400 text-xs mt-0.5">📍 {selectedEvent.location.name}</p>
+                <p className="text-gray-400 text-xs mt-0.5">
+                  🕘 {formatEventDate(selectedEvent.startAt)}
+                  👥 {selectedEvent.participants.length}/{selectedEvent.capacity}人
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedEvent(null)}
+                className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center text-gray-400 text-sm flex-shrink-0"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ピン設置モード */}
       {isPickingLocation && (
         <>
@@ -246,6 +347,87 @@ export default function MapView({ onUserSelect, flyToTarget }: Props) {
               className="flex-1 py-3 rounded-xl bg-amber-400 text-black text-sm font-bold"
             >
               この位置に設定
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* フィルターシート */}
+      {showFilterSheet && (
+        <>
+          <div
+            className="absolute inset-0 z-20 bg-black/50"
+            onClick={() => setShowFilterSheet(false)}
+          />
+          <div className="absolute bottom-0 left-0 right-0 z-30 bg-gray-900 rounded-t-2xl border-t border-gray-700 px-5 py-6">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-white font-bold text-base">フィルター</h3>
+              <button onClick={() => setShowFilterSheet(false)} className="text-gray-500 text-xl w-8 h-8 flex items-center justify-center">✕</button>
+            </div>
+
+            {/* イベント表示範囲 */}
+            <p className="text-gray-500 text-xs font-medium mb-3">📅 イベント表示範囲</p>
+            <div className="flex gap-2 mb-5">
+              {(['today', 'all'] as const).map(f => (
+                <button
+                  key={f}
+                  onClick={() => setEventFilter(f)}
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-colors ${
+                    eventFilter === f
+                      ? 'bg-amber-400 text-black border-amber-400'
+                      : 'bg-gray-800 text-gray-300 border-gray-700'
+                  }`}
+                >
+                  {f === 'today' ? '今日のみ' : 'すべて表示'}
+                </button>
+              ))}
+            </div>
+
+            {/* ユーザー表示フィルター */}
+            <p className="text-gray-500 text-xs font-medium mb-3">👤 ユーザー表示</p>
+            <div className="flex flex-col gap-2 mb-6">
+              <label className="flex items-center justify-between px-4 py-3 bg-gray-800 rounded-xl cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <span className="text-lg">📢</span>
+                  <div>
+                    <p className="text-white text-sm font-medium">シャウト中のユーザー</p>
+                    <p className="text-gray-500 text-xs">シャウトを発信中のユーザーを表示</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowShouting(v => !v)}
+                  className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${showShouting ? 'bg-amber-400' : 'bg-gray-600'}`}
+                >
+                  <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${showShouting ? 'left-6' : 'left-0.5'}`} />
+                </button>
+              </label>
+
+              <label className="flex items-center justify-between px-4 py-3 bg-gray-800 rounded-xl cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <span className="text-lg">📡</span>
+                  <div>
+                    <p className="text-white text-sm font-medium">リアル位置のみ</p>
+                    <p className="text-gray-500 text-xs">GPS で現在地を共有中のユーザーのみ</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowGpsOnly(v => !v)}
+                  className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${showGpsOnly ? 'bg-amber-400' : 'bg-gray-600'}`}
+                >
+                  <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${showGpsOnly ? 'left-6' : 'left-0.5'}`} />
+                </button>
+              </label>
+            </div>
+
+            <button
+              onClick={() => {
+                setEventFilter('today')
+                setShowShouting(true)
+                setShowGpsOnly(false)
+              }}
+              className="w-full py-2.5 rounded-xl bg-gray-800 text-gray-400 text-sm"
+            >
+              リセット
             </button>
           </div>
         </>
