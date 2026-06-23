@@ -118,14 +118,14 @@ export default function EventListScreen({
   events,
   onSelectEvent,
   onCreate,
-  onManage,
+  onManageEvent,
   onInterest,
   onApply,
 }: {
   events: BeeEvent[]
   onSelectEvent: (id: string) => void
   onCreate: () => void
-  onManage: () => void
+  onManageEvent: (id: string) => void
   onInterest: (id: string) => void
   onApply: (id: string, msg: string) => void
 }) {
@@ -196,9 +196,8 @@ export default function EventListScreen({
       {period === 'mine' ? (
         <div className="flex-1 overflow-y-auto pb-4">
           {/* 主催中セクション */}
-          <div className="px-4 pt-5 pb-2 flex items-center justify-between">
+          <div className="px-4 pt-5 pb-2">
             <p className="text-gray-500 text-xs font-medium">主催中</p>
-            <button onClick={onManage} className="text-amber-400 text-xs">管理画面 ›</button>
           </div>
           {myHosted.length === 0 ? (
             <p className="text-gray-600 text-sm text-center py-4">主催しているイベントはありません</p>
@@ -207,7 +206,7 @@ export default function EventListScreen({
               <EventCard
                 key={ev.id}
                 event={ev}
-                onSelect={() => onManage()}
+                onSelect={() => onManageEvent(ev.id)}
                 onApply={() => {}}
                 onInterest={() => {}}
               />

@@ -26,14 +26,12 @@ export default function EventDetailScreen({
   onApply,
   onInterest,
   onManage,
-  onChat,
 }: {
   event: BeeEvent
   onBack: () => void
   onApply: (msg: string) => void
   onInterest: () => void
   onManage: () => void
-  onChat: () => void
 }) {
   const [showApplyModal, setShowApplyModal] = useState(false)
   const [showParticipants, setShowParticipants] = useState(false)
@@ -210,11 +208,8 @@ export default function EventDetailScreen({
         )}
         {status === 'approved' && (
           <div className="flex gap-3">
-            <button
-              onClick={onChat}
-              className="flex-1 py-3 rounded-xl bg-amber-400 text-black text-sm font-bold"
-            >
-              💬 グループチャット
+            <button className="flex-1 py-3 rounded-xl bg-green-500/20 text-green-400 text-sm font-medium" disabled>
+              ✅ 参加確定
             </button>
             <button className="flex-1 py-3 rounded-xl bg-gray-800 text-gray-300 text-sm">
               参加をキャンセル

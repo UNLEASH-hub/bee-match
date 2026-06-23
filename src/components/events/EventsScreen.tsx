@@ -5,19 +5,13 @@ import { currentUser } from '../../data/mockUsers'
 import EventListScreen from './EventListScreen'
 import EventDetailScreen from './EventDetailScreen'
 import EventCreateScreen from './EventCreateScreen'
-import EventManageListScreen from './EventManageListScreen'
 import EventManageDetailScreen from './EventManageDetailScreen'
-import EventApprovalScreen from './EventApprovalScreen'
-import EventChatScreen from './EventChatScreen'
 
 type SubScreen =
   | { type: 'list' }
   | { type: 'detail'; eventId: string }
   | { type: 'create' }
-  | { type: 'manage-list' }
   | { type: 'manage-detail'; eventId: string }
-  | { type: 'approval'; eventId: string; applicationId: string }
-  | { type: 'chat'; eventId: string }
 
 export default function EventsScreen() {
   const [events, setEvents] = useState<BeeEvent[]>(mockEvents)
@@ -45,9 +39,7 @@ export default function EventsScreen() {
 
   function toggleInterest(eventId: string) {
     setEvents(prev => prev.map(ev =>
-      ev.id === eventId
-        ? { ...ev, interestedCount: ev.interestedCount + 1 }
-        : ev
+      ev.id === eventId ? { ...ev, interestedCount: ev.interestedCount + 1 } : ev
     ))
   }
 
@@ -66,14 +58,14 @@ export default function EventsScreen() {
     }))
   }
 
-  function rejectApplication(eventId: string, applicationId: string, reason: string, message: string) {
+  function rejectApplication(eventId: string, applicationId: string) {
     setEvents(prev => prev.map(ev => {
       if (ev.id !== eventId) return ev
       return {
         ...ev,
         applications: ev.applications.map(a =>
           a.id === applicationId
-            ? { ...a, status: 'rejected' as const, rejectionReason: reason, rejectionMessage: message, respondedAt: new Date().toISOString() }
+            ? { ...a, status: 'rejected' as const, respondedAt: new Date().toISOString() }
             : a
         ),
       }
@@ -94,10 +86,7 @@ export default function EventsScreen() {
     toList:         () => setSub({ type: 'list' }),
     toDetail:       (id: string) => setSub({ type: 'detail', eventId: id }),
     toCreate:       () => setSub({ type: 'create' }),
-    toManageList:   () => setSub({ type: 'manage-list' }),
     toManageDetail: (id: string) => setSub({ type: 'manage-detail', eventId: id }),
-    toApproval:     (eventId: string, appId: string) => setSub({ type: 'approval', eventId, applicationId: appId }),
-    toChat:         (id: string) => setSub({ type: 'chat', eventId: id }),
   }
 
   if (sub.type === 'detail') {
@@ -109,7 +98,6 @@ export default function EventsScreen() {
         onApply={(msg) => applyToEvent(ev.id, msg)}
         onInterest={() => toggleInterest(ev.id)}
         onManage={() => nav.toManageDetail(ev.id)}
-        onChat={() => nav.toChat(ev.id)}
       />
     )
   }
@@ -123,52 +111,15 @@ export default function EventsScreen() {
     )
   }
 
-  if (sub.type === 'manage-list') {
-    return (
-      <EventManageListScreen
-        events={events.filter(e => e.host.id === currentUser.id)}
-        onBack={nav.toList}
-        onOpenManage={nav.toManageDetail}
-        onCreate={nav.toCreate}
-      />
-    )
-  }
-
   if (sub.type === 'manage-detail') {
     const ev = getEvent(sub.eventId)
     return (
       <EventManageDetailScreen
         event={ev}
-        onBack={nav.toManageList}
-        onApproval={(appId) => nav.toApproval(ev.id, appId)}
-        onChat={() => nav.toChat(ev.id)}
-        onCancel={() => { cancelEvent(ev.id); nav.toManageList() }}
+        onBack={nav.toList}
+        onCancel={() => { cancelEvent(ev.id); nav.toList() }}
         onApprove={(appId) => approveApplication(ev.id, appId)}
-        onReject={(appId) => rejectApplication(ev.id, appId, '', '')}
-      />
-    )
-  }
-
-  if (sub.type === 'approval') {
-    const ev = getEvent(sub.eventId)
-    const app = ev.applications.find(a => a.id === sub.applicationId)!
-    return (
-      <EventApprovalScreen
-        event={ev}
-        application={app}
-        onBack={() => nav.toManageDetail(ev.id)}
-        onApprove={() => { approveApplication(ev.id, app.id); nav.toManageDetail(ev.id) }}
-        onReject={(reason, msg) => { rejectApplication(ev.id, app.id, reason, msg); nav.toManageDetail(ev.id) }}
-      />
-    )
-  }
-
-  if (sub.type === 'chat') {
-    const ev = getEvent(sub.eventId)
-    return (
-      <EventChatScreen
-        event={ev}
-        onBack={() => nav.toDetail(ev.id)}
+        onReject={(appId) => rejectApplication(ev.id, appId)}
       />
     )
   }
@@ -178,7 +129,7 @@ export default function EventsScreen() {
       events={events}
       onSelectEvent={nav.toDetail}
       onCreate={nav.toCreate}
-      onManage={nav.toManageList}
+      onManageEvent={nav.toManageDetail}
       onInterest={toggleInterest}
       onApply={applyToEvent}
     />
