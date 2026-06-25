@@ -57,12 +57,22 @@ export default function EventDetailScreen({
       {/* スクロールコンテンツ */}
       <div className="flex-1 overflow-y-auto pb-28">
         {/* カバー画像 or カテゴリプレースホルダー */}
-        <div
-          className="w-full h-36 flex items-center justify-center"
-          style={{ backgroundColor: CATEGORY_COLOR[event.category] + '33' }}
-        >
-          <span className="text-7xl">{CATEGORY_EMOJI[event.category]}</span>
-        </div>
+        {event.coverImage ? (
+          <div className="relative w-full h-44 overflow-hidden">
+            <img src={event.coverImage} alt={event.title} className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-gray-950/60" />
+            <span className="absolute bottom-3 left-4 text-4xl drop-shadow-lg">
+              {CATEGORY_EMOJI[event.category]}
+            </span>
+          </div>
+        ) : (
+          <div
+            className="w-full h-36 flex items-center justify-center"
+            style={{ backgroundColor: CATEGORY_COLOR[event.category] + '33' }}
+          >
+            <span className="text-7xl">{CATEGORY_EMOJI[event.category]}</span>
+          </div>
+        )}
 
         <div className="px-5 pt-5 flex flex-col gap-5">
           {/* タイトル・カテゴリ */}
@@ -117,12 +127,9 @@ export default function EventDetailScreen({
             )}
           </div>
 
-          {/* タグ */}
-          {event.tags.length > 0 && (
+          {/* 参加条件バッジ */}
+          {event.conditions.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {event.tags.map(t => (
-                <span key={t} className="bg-gray-800 text-gray-300 text-xs px-3 py-1.5 rounded-full">{t}</span>
-              ))}
               {event.conditions.map(c => (
                 <span key={c} className="bg-gray-800 text-amber-400 text-xs px-3 py-1.5 rounded-full">✓ {c}</span>
               ))}

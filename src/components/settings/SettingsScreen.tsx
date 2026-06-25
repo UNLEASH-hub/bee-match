@@ -47,7 +47,12 @@ function SettingsRow({ label, onPress }: { label: string; onPress?: () => void }
   )
 }
 
-export default function SettingsScreen() {
+interface Props {
+  isVip: boolean
+  onToggleVip: () => void
+}
+
+export default function SettingsScreen({ isVip, onToggleVip }: Props) {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true)
   const [openScreen, setOpenScreen] = useState<SubScreen | null>(null)
 
@@ -64,18 +69,44 @@ export default function SettingsScreen() {
 
       {/* VIPパスバナー */}
       <div className="px-4 mb-2">
-        <button className="w-full bg-gradient-to-r from-amber-500 to-yellow-400 rounded-2xl px-5 py-4 flex items-center justify-between active:opacity-90 transition-opacity">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl leading-none">👑</span>
-            <div className="text-left">
-              <p className="text-black font-bold text-sm">VIPパス</p>
-              <p className="text-black/70 text-xs mt-0.5">プレミアム機能をすべて解放</p>
+        {isVip ? (
+          <div className="w-full bg-gradient-to-r from-amber-500 to-yellow-400 rounded-2xl px-5 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl leading-none">👑</span>
+                <div className="text-left">
+                  <div className="flex items-center gap-2">
+                    <p className="text-black font-bold text-sm">VIPパス加入中</p>
+                    <span className="text-xs bg-black/20 text-black px-2 py-0.5 rounded-full font-medium">✓ 有効</span>
+                  </div>
+                  <p className="text-black/70 text-xs mt-0.5">プレミアム機能が使用できます</p>
+                </div>
+              </div>
             </div>
+            <button
+              onClick={onToggleVip}
+              className="mt-3 w-full py-2 rounded-xl bg-black/20 text-black text-xs font-medium active:opacity-70"
+            >
+              解除する（デモ用）
+            </button>
           </div>
-          <svg viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 opacity-60">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </button>
+        ) : (
+          <button
+            onClick={onToggleVip}
+            className="w-full bg-gradient-to-r from-amber-500 to-yellow-400 rounded-2xl px-5 py-4 flex items-center justify-between active:opacity-90 transition-opacity"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-2xl leading-none">👑</span>
+              <div className="text-left">
+                <p className="text-black font-bold text-sm">VIPパス</p>
+                <p className="text-black/70 text-xs mt-0.5">タップして加入する（デモ用）</p>
+              </div>
+            </div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 opacity-60">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* アカウント */}

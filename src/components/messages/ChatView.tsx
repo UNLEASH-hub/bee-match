@@ -4,9 +4,12 @@ import type { Conversation, Message } from '../../types'
 interface Props {
   conv: Conversation
   onBack: () => void
+  isVip?: boolean
+  remainingMessages?: number
+  onMessageSent?: () => void
 }
 
-export default function ChatView({ conv, onBack }: Props) {
+export default function ChatView({ conv, onBack, isVip = false, remainingMessages, onMessageSent }: Props) {
   const u = conv.participant
   const [messages, setMessages] = useState<Message[]>(conv.messages)
   const [input, setInput] = useState('')
@@ -20,6 +23,7 @@ export default function ChatView({ conv, onBack }: Props) {
   function handleSend() {
     const text = input.trim()
     if (!text) return
+    if (!isVip && (remainingMessages ?? 100) <= 0) return
     const msg: Message = {
       id: `msg-${Date.now()}`,
       senderId: 'me',
@@ -28,6 +32,7 @@ export default function ChatView({ conv, onBack }: Props) {
     }
     setMessages(prev => [...prev, msg])
     setInput('')
+    onMessageSent?.()
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -56,7 +61,6 @@ export default function ChatView({ conv, onBack }: Props) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <p className="text-white font-semibold text-sm">{u.name}</p>
-            {u.isOnline && <span className="w-2 h-2 bg-green-400 rounded-full flex-shrink-0" />}
           </div>
           <p className="text-gray-500 text-xs">
             {u.height && `${u.height}cm`}{u.weight && ` · ${u.weight}kg`}{` · ${u.age}歳`}
@@ -88,6 +92,15 @@ export default function ChatView({ conv, onBack }: Props) {
         <div ref={bottomRef} />
       </div>
 
+      {/* 上限到達メッセージ */}
+      {!isVip && remainingMessages === 0 && (
+        <div className="px-4 py-2 border-t border-gray-800 flex-shrink-0">
+          <p className="text-red-400 text-xs text-center">
+            今月のメッセージ上限（100通）に達しました
+          </p>
+        </div>
+      )}
+
       {/* 入力エリア */}
       <div className="flex items-center gap-2 px-4 py-3 border-t border-gray-800 flex-shrink-0">
         <input
@@ -100,7 +113,7 @@ export default function ChatView({ conv, onBack }: Props) {
         />
         <button
           onClick={handleSend}
-          disabled={!input.trim()}
+          disabled={!input.trim() || (!isVip && (remainingMessages ?? 100) <= 0)}
           className="w-10 h-10 bg-amber-400 rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-40 active:opacity-80 transition-opacity"
           aria-label="送信"
         >

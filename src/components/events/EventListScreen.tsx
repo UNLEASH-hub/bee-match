@@ -14,16 +14,7 @@ export const CATEGORY_COLOR: Record<BeeEvent['category'], string> = {
   play: '#3b82f6', activity: '#ef4444', night: '#6366f1',
 }
 
-type Period = 'tonight' | 'future' | 'mine'
-
-function isTonight(iso: string) {
-  const d = new Date(iso), now = new Date()
-  const end = new Date(now); end.setHours(23, 59, 59, 999)
-  return d >= now && d <= end
-}
-function isFuture(iso: string) {
-  return new Date(iso) > new Date() && !isTonight(iso)
-}
+type Period = 'list' | 'mine'
 
 function getParticipantStatus(ev: BeeEvent) {
   if (ev.host.id === currentUser.id) return 'host'
@@ -51,12 +42,22 @@ function EventCard({
       className="mx-4 mb-3 bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden active:opacity-90"
       onClick={onSelect}
     >
-      <div className="h-1.5" style={{ backgroundColor: CATEGORY_COLOR[event.category] }} />
+      {event.coverImage ? (
+        <div className="relative w-full h-28 overflow-hidden">
+          <img src={event.coverImage} alt={event.title} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-gray-900/70" />
+          <span className="absolute bottom-2 left-3 text-2xl drop-shadow">{CATEGORY_EMOJI[event.category]}</span>
+        </div>
+      ) : (
+        <div className="h-1.5" style={{ backgroundColor: CATEGORY_COLOR[event.category] }} />
+      )}
       <div className="p-4">
         <div className="flex items-start gap-3">
-          <span className="text-3xl leading-none flex-shrink-0 mt-0.5">
-            {CATEGORY_EMOJI[event.category]}
-          </span>
+          {!event.coverImage && (
+            <span className="text-3xl leading-none flex-shrink-0 mt-0.5">
+              {CATEGORY_EMOJI[event.category]}
+            </span>
+          )}
           <div className="flex-1 min-w-0">
             <p className="text-white font-semibold text-sm leading-snug">{event.title}</p>
             <p className="text-gray-500 text-xs mt-1">📍 {event.location.name}</p>
@@ -72,11 +73,6 @@ function EventCard({
           <img src={event.host.avatarUrl} alt={event.host.name}
             className="w-5 h-5 rounded-full object-cover flex-shrink-0" />
           <p className="text-gray-500 text-xs">{event.host.name}</p>
-          <div className="flex gap-1 flex-1 overflow-hidden">
-            {event.tags.slice(0, 2).map(t => (
-              <span key={t} className="text-xs text-gray-600 truncate">{t}</span>
-            ))}
-          </div>
         </div>
 
         {status !== 'host' && (
@@ -121,6 +117,8 @@ export default function EventListScreen({
   onManageEvent,
   onInterest,
   onApply,
+  isVip,
+  onNavigateToSettings,
 }: {
   events: BeeEvent[]
   onSelectEvent: (id: string) => void
@@ -128,26 +126,33 @@ export default function EventListScreen({
   onManageEvent: (id: string) => void
   onInterest: (id: string) => void
   onApply: (id: string, msg: string) => void
+  isVip: boolean
+  onNavigateToSettings: () => void
 }) {
-  const [period, setPeriod] = useState<Period>('tonight')
+  const [period, setPeriod] = useState<Period>('list')
   const [search, setSearch] = useState('')
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [agreeTerms, setAgreeTerms] = useState(false)
+  const [agreeLocation, setAgreeLocation] = useState(false)
+  const [showVipUpsell, setShowVipUpsell] = useState(false)
+
+  function handleCreateClick() {
+    if (!isVip) { setShowVipUpsell(true); return }
+    setAgreeTerms(false)
+    setAgreeLocation(false)
+    setShowCreateModal(true)
+  }
 
   const tabs: { key: Period; label: string }[] = [
-    { key: 'tonight', label: '今夜' },
-    { key: 'future',  label: '今後' },
-    { key: 'mine',    label: 'マイイベント' },
+    { key: 'list', label: '一覧' },
+    { key: 'mine', label: 'マイイベント' },
   ]
 
   // 一般リスト用フィルター（mine タブ以外）
-  const filtered = events.filter(ev => {
-    if (ev.status === 'cancelled') return false
-    if (period === 'mine')    return false
-    if (period === 'tonight') return isTonight(ev.startAt)
-    if (period === 'future')  return isFuture(ev.startAt)
-    return true
-  }).filter(ev =>
-    !search || ev.title.includes(search) || ev.location.name.includes(search)
-  )
+  const filtered = events
+    .filter(ev => ev.status !== 'cancelled' && period !== 'mine')
+    .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
+    .filter(ev => !search || ev.title.includes(search) || ev.location.name.includes(search))
 
   // マイイベント用
   const myHosted = events.filter(ev =>
@@ -163,12 +168,12 @@ export default function EventListScreen({
   )
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col bg-gray-950">
+    <div className="flex-1 min-h-0 flex flex-col bg-gray-950 relative">
       {/* ヘッダー */}
       <div className="px-4 pt-5 pb-3 flex items-center justify-between flex-shrink-0">
         <h1 className="text-white text-xl font-bold">イベント</h1>
         <button
-          onClick={onCreate}
+          onClick={handleCreateClick}
           className="text-black text-xs px-3 py-1.5 rounded-xl bg-amber-400 font-semibold active:opacity-70"
         >
           + 新規作成
@@ -214,7 +219,7 @@ export default function EventListScreen({
           )}
 
           <div className="px-4 py-3">
-            <button onClick={onCreate}
+            <button onClick={handleCreateClick}
               className="w-full py-2.5 rounded-xl border border-dashed border-gray-700 text-gray-500 text-xs">
               + 新しいイベントを作成
             </button>
@@ -255,7 +260,7 @@ export default function EventListScreen({
             <div className="flex flex-col items-center justify-center gap-3 py-16 text-center px-8">
               <span className="text-gray-600 text-5xl">📅</span>
               <p className="text-gray-500 text-sm">この期間のイベントはありません</p>
-              <button onClick={onCreate}
+              <button onClick={handleCreateClick}
                 className="mt-2 px-5 py-2.5 bg-amber-400 text-black text-sm font-semibold rounded-xl">
                 + 最初のイベントを作成
               </button>
@@ -273,6 +278,99 @@ export default function EventListScreen({
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* VIP 誘導ポップアップ */}
+      {showVipUpsell && (
+        <div className="absolute inset-0 z-50 bg-black/60 flex items-end"
+          onClick={() => setShowVipUpsell(false)}>
+          <div className="w-full bg-gray-900 rounded-t-2xl border-t border-gray-700 px-5 py-8"
+            onClick={e => e.stopPropagation()}>
+            <div className="flex flex-col items-center gap-3 mb-6">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-yellow-300 flex items-center justify-center shadow-lg shadow-amber-400/30">
+                <span className="text-3xl leading-none">👑</span>
+              </div>
+              <h2 className="text-white font-bold text-lg text-center">VIPパス限定機能です</h2>
+              <p className="text-gray-400 text-sm text-center leading-relaxed">
+                イベントの新規作成はVIPパス加入者のみ利用できます
+              </p>
+            </div>
+            <div className="bg-gray-800 rounded-xl px-4 py-3 mb-6 flex flex-col gap-2">
+              {['イベントの新規作成', '目隠し（地図上に非表示）', '無制限いいね', '広告なし'].map(item => (
+                <div key={item} className="flex items-center gap-2">
+                  <span className="text-amber-400 text-sm">✓</span>
+                  <span className="text-gray-300 text-sm">{item}</span>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => { setShowVipUpsell(false); onNavigateToSettings() }}
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 text-black font-bold text-sm mb-3"
+            >
+              設定でVIPパスに加入する 👑
+            </button>
+            <button
+              onClick={() => setShowVipUpsell(false)}
+              className="w-full py-2 text-gray-500 text-sm"
+            >
+              今はしない
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 新規作成 確認モーダル */}
+      {showCreateModal && (
+        <div
+          className="absolute inset-0 z-50 bg-black/60 flex items-end"
+          onClick={() => setShowCreateModal(false)}
+        >
+          <div
+            className="w-full bg-gray-900 rounded-t-2xl px-5 py-6"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-white font-bold text-base">イベントを作成する前に</h3>
+              <button onClick={() => setShowCreateModal(false)} className="text-gray-500 text-xl w-8 h-8 flex items-center justify-center">✕</button>
+            </div>
+
+            <div className="flex flex-col gap-4 mb-6">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={agreeTerms}
+                  onChange={e => setAgreeTerms(e.target.checked)}
+                  className="w-5 h-5 accent-amber-400 flex-shrink-0 mt-0.5"
+                />
+                <div>
+                  <p className="text-white text-sm font-medium">イベント募集の利用規約に同意します</p>
+                  <p className="text-gray-500 text-xs mt-0.5">健全なコミュニティのためのルールを守ります</p>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={agreeLocation}
+                  onChange={e => setAgreeLocation(e.target.checked)}
+                  className="w-5 h-5 accent-amber-400 flex-shrink-0 mt-0.5"
+                />
+                <div>
+                  <p className="text-white text-sm font-medium">マップへの表示について理解しました</p>
+                  <p className="text-gray-500 text-xs mt-0.5">位置情報は多少ズレる場合がありますが、イベントがマップ上に表示されます</p>
+                </div>
+              </label>
+            </div>
+
+            <button
+              onClick={() => { setShowCreateModal(false); onCreate() }}
+              disabled={!agreeTerms || !agreeLocation}
+              className="w-full py-3.5 rounded-xl bg-amber-400 text-black font-bold text-sm disabled:opacity-40 active:opacity-80"
+            >
+              作成画面へ進む
+            </button>
+          </div>
         </div>
       )}
     </div>

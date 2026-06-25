@@ -4,7 +4,7 @@ import FootprintPanel from './FootprintPanel'
 
 type MainTab = 'action' | 'footprint'
 
-export default function NotificationsScreen() {
+export default function NotificationsScreen({ isVip = false }: { isVip?: boolean }) {
   const [tab, setTab] = useState<MainTab>('action')
 
   return (
@@ -31,7 +31,7 @@ export default function NotificationsScreen() {
       </div>
 
       {/* コンテンツ */}
-      {tab === 'action'    && <ActionList />}
+      {tab === 'action'    && <ActionList isVip={isVip} />}
       {tab === 'footprint' && <FootprintPanel />}
     </div>
   )

@@ -13,7 +13,12 @@ type SubScreen =
   | { type: 'create' }
   | { type: 'manage-detail'; eventId: string }
 
-export default function EventsScreen() {
+interface Props {
+  isVip: boolean
+  onNavigateToSettings: () => void
+}
+
+export default function EventsScreen({ isVip, onNavigateToSettings }: Props) {
   const [events, setEvents] = useState<BeeEvent[]>(mockEvents)
   const [sub, setSub] = useState<SubScreen>({ type: 'list' })
 
@@ -132,6 +137,8 @@ export default function EventsScreen() {
       onManageEvent={nav.toManageDetail}
       onInterest={toggleInterest}
       onApply={applyToEvent}
+      isVip={isVip}
+      onNavigateToSettings={onNavigateToSettings}
     />
   )
 }

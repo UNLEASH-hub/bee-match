@@ -5,7 +5,6 @@ import { CATEGORY_EMOJI, CATEGORY_LABEL, CATEGORY_COLOR } from './EventListScree
 
 const CATEGORIES: EventCategory[] = ['drinking', 'cafe', 'meal', 'play', 'activity', 'night']
 const CONDITION_OPTIONS = ['お酒OK', '割り勘', '初参加歓迎', '既婚者OK']
-const TAG_SUGGESTIONS = ['#30代中心', '#初心者歓迎', '#ノンケ友達OK', '#英語話者歓迎', '#20代中心']
 
 function ChevronLeft() {
   return (
@@ -41,8 +40,6 @@ export default function EventCreateScreen({
   // Step 3
   const [approvalMode, setApprovalMode] = useState<ApprovalMode>('approval')
   const [conditions, setConditions] = useState<string[]>([])
-  const [tags, setTags] = useState<string[]>([])
-  const [tagInput, setTagInput] = useState('')
 
   // Step 4
   const [description, setDescription] = useState('')
@@ -53,9 +50,16 @@ export default function EventCreateScreen({
   const [agreeContent, setAgreeContent] = useState(false)
   const [visibility, setVisibility] = useState<'public' | 'limited'>('public')
 
+  const today   = new Date().toISOString().slice(0, 10)
+  const maxDate = new Date(Date.now() + 7 * 86_400_000).toISOString().slice(0, 10)
+
   function canNext() {
     if (step === 1) return category !== '' && title.trim().length >= 1
-    if (step === 2) return startDate !== '' && locationName.trim() !== '' && capacity >= 2
+    if (step === 2) {
+      if (!startDate || !locationName.trim() || capacity < 2) return false
+      if (startDate < today || startDate > maxDate) return false
+      return true
+    }
     if (step === 3) return true
     if (step === 4) return description.trim().length >= 10
     if (step === 5) return agreeTerms && agreeContent
@@ -66,12 +70,7 @@ export default function EventCreateScreen({
     setConditions(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c])
   }
 
-  function addTag(t: string) {
-    const tag = t.startsWith('#') ? t : `#${t}`
-    if (!tags.includes(tag) && tags.length < 5) setTags(prev => [...prev, tag])
-  }
-
-  function handlePublish() {
+function handlePublish() {
     const startAt = new Date(`${startDate}T${startTime}:00`).toISOString()
     const endAt   = new Date(`${startDate}T${endTime}:00`).toISOString()
     const newEvent: BeeEvent = {
@@ -87,7 +86,7 @@ export default function EventCreateScreen({
       },
       startAt, endAt, capacity,
       host: currentUser,
-      approvalMode, conditions, tags,
+      approvalMode, conditions, tags: [],
       status: 'published',
       interestedCount: 0,
       participants: [currentUser],
@@ -176,7 +175,9 @@ export default function EventCreateScreen({
               <div className="flex-1">
                 <p className="text-gray-500 text-xs mb-2">開催日 *</p>
                 <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
+                  min={today} max={maxDate}
                   className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-3 py-3 text-sm outline-none focus:border-amber-400" />
+                <p className="text-gray-600 text-xs mt-1">今日から7日以内で設定してください</p>
               </div>
             </div>
             <div className="flex gap-3">
@@ -209,14 +210,17 @@ export default function EventCreateScreen({
                 placeholder={locationType === 'venue' ? '例: AiBar 新宿' : '例: 渋谷駅周辺'}
                 className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-3 text-sm outline-none focus:border-amber-400" />
             </div>
-            {locationType === 'venue' && (
-              <div>
-                <p className="text-gray-500 text-xs mb-2">住所</p>
-                <input type="text" value={locationAddress} onChange={e => setLocationAddress(e.target.value)}
-                  placeholder="例: 東京都新宿区新宿2-11-4"
-                  className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-3 text-sm outline-none focus:border-amber-400" />
-              </div>
-            )}
+            <div>
+              <p className="text-gray-500 text-xs mb-2">
+                {locationType === 'venue' ? '住所' : '詳細住所'}
+              </p>
+              <input type="text" value={locationAddress} onChange={e => setLocationAddress(e.target.value)}
+                placeholder="例: 東京都渋谷区〇〇1-2-3"
+                className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-3 text-sm outline-none focus:border-amber-400" />
+              {locationType !== 'venue' && (
+                <p className="text-amber-400/80 text-xs mt-1">🔒 参加メンバーのみに表示されます</p>
+              )}
+            </div>
             <div>
               <p className="text-gray-500 text-xs mb-2">定員: {capacity}人</p>
               <input type="range" min={2} max={50} value={capacity} onChange={e => setCapacity(Number(e.target.value))}
@@ -261,40 +265,6 @@ export default function EventCreateScreen({
                   </button>
                 ))}
               </div>
-            </div>
-            <div>
-              <p className="text-gray-500 text-xs mb-2">タグ（任意、最大5個）</p>
-              <div className="flex flex-wrap gap-2 mb-3">
-                {TAG_SUGGESTIONS.map(t => (
-                  <button key={t} onClick={() => addTag(t)}
-                    disabled={tags.includes(t) || tags.length >= 5}
-                    className={`px-3 py-1.5 rounded-full text-xs border transition-colors ${
-                      tags.includes(t) ? 'bg-amber-400 text-black border-amber-400' : 'bg-gray-800 text-gray-400 border-gray-700'
-                    }`}>
-                    {t}
-                  </button>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <input
-                  type="text" value={tagInput} onChange={e => setTagInput(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter' && tagInput) { addTag(tagInput); setTagInput('') } }}
-                  placeholder="カスタムタグを追加..."
-                  className="flex-1 bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-2.5 text-sm outline-none focus:border-amber-400"
-                />
-                <button onClick={() => { if (tagInput) { addTag(tagInput); setTagInput('') } }}
-                  className="px-4 py-2.5 bg-gray-700 text-gray-300 rounded-xl text-sm">追加</button>
-              </div>
-              {tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {tags.map(t => (
-                    <span key={t} className="flex items-center gap-1 bg-amber-400/20 text-amber-400 text-xs px-3 py-1 rounded-full">
-                      {t}
-                      <button onClick={() => setTags(prev => prev.filter(x => x !== t))} className="text-amber-400/70 ml-1">✕</button>
-                    </span>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
         )}

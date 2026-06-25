@@ -9,12 +9,17 @@ const actionConfig: Record<ActionType, { text: string; badge: string; symbol: st
   'event-request':{ text: 'イベントに参加申請しました', badge: 'bg-green-500',  symbol: '📅' },
 }
 
-export default function ActionList() {
+export default function ActionList({ isVip = false }: { isVip?: boolean }) {
+  const visibleActions = mockActions.filter(notif =>
+    isVip ? true : notif.type !== 'event-request'
+  )
+
   return (
     <div className="flex-1 overflow-y-auto">
-      {mockActions.map(notif => {
+      {visibleActions.map(notif => {
         const cfg = actionConfig[notif.type]
         const u = notif.user
+        const isHidden = !isVip && (notif.type === 'favorite' || notif.type === 'want-to-meet')
 
         return (
           <button
@@ -29,9 +34,9 @@ export default function ActionList() {
               <div className="relative flex-shrink-0">
                 <img
                   src={u.avatarUrl}
-                  alt={u.name}
+                  alt={isHidden ? '?' : u.name}
                   className="w-13 h-13 rounded-full object-cover"
-                  style={{ width: 52, height: 52 }}
+                  style={{ width: 52, height: 52, filter: isHidden ? 'blur(8px)' : 'none' }}
                 />
                 <span
                   className={`absolute -bottom-0.5 -right-0.5 w-5 h-5 ${cfg.badge} rounded-full flex items-center justify-center text-[10px] border-2 border-gray-950`}
@@ -42,13 +47,24 @@ export default function ActionList() {
 
               {/* テキスト */}
               <div className="flex-1 min-w-0">
-                <p className={`text-sm ${notif.read ? 'text-gray-300' : 'text-white font-semibold'}`}>
-                  <span className="font-semibold">{u.name}</span>
-                  {' '}が{cfg.text}
-                </p>
-                <p className="text-gray-500 text-xs mt-0.5">
-                  {u.height && `${u.height}cm`}{u.weight && ` · ${u.weight}kg`}{` · ${u.age}歳`}
-                </p>
+                {isHidden ? (
+                  <>
+                    <p className="text-sm text-white font-semibold">
+                      ??? 🔒 が{cfg.text}
+                    </p>
+                    <p className="text-amber-400/70 text-xs mt-0.5">👑 VIPパスで確認できます</p>
+                  </>
+                ) : (
+                  <>
+                    <p className={`text-sm ${notif.read ? 'text-gray-300' : 'text-white font-semibold'}`}>
+                      <span className="font-semibold">{u.name}</span>
+                      {' '}が{cfg.text}
+                    </p>
+                    <p className="text-gray-500 text-xs mt-0.5">
+                      {u.height && `${u.height}cm`}{u.weight && ` · ${u.weight}kg`}{` · ${u.age}歳`}
+                    </p>
+                  </>
+                )}
               </div>
 
               {/* 時刻 */}

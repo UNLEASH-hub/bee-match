@@ -33,9 +33,6 @@ export default function MessageList({ onOpen }: Props) {
                   alt={u.name}
                   className="w-14 h-14 rounded-full object-cover"
                 />
-                {u.isOnline && (
-                  <span className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-gray-950" />
-                )}
               </div>
 
               {/* ユーザー情報 */}

@@ -110,13 +110,6 @@ export default function UserProfileScreen({ user, onBack, onMessage, onShowOnMap
           <BackIcon />
         </button>
 
-        {/* オンラインバッジ */}
-        {user.isOnline && (
-          <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1">
-            <span className="w-2 h-2 bg-green-400 rounded-full" />
-            <span className="text-white text-xs font-medium">オンライン</span>
-          </div>
-        )}
       </div>
 
       {/* サムネイル行（他の3枚） */}

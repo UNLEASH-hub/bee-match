@@ -59,9 +59,6 @@ function ShoutCard({ shout, onShowOnMap }: { shout: Shout; onShowOnMap?: (user: 
       <div className="flex items-start gap-3 px-4 py-4 border-b border-gray-800">
         <div className="relative flex-shrink-0">
           <img src={u.avatarUrl} alt={u.name} className="w-12 h-12 rounded-full object-cover" />
-          {u.isOnline && (
-            <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-gray-950" />
-          )}
         </div>
 
         <div className="flex-1 min-w-0">
