@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import type { BeeEvent } from '../../types'
 import { currentUser } from '../../data/mockUsers'
 import { formatEventDate } from '../../lib/utils/format'
@@ -27,15 +27,26 @@ function EventCard({
   event,
   onSelect,
   onApply,
-  onInterest,
 }: {
   event: BeeEvent
   onSelect: () => void
   onApply: () => void
-  onInterest: () => void
 }) {
   const status = getParticipantStatus(event)
   const filled = event.participants.length >= event.capacity
+  const [copied, setCopied] = useState(false)
+
+  const handleShare = useCallback(async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    const url = window.location.href
+    if (navigator.share) {
+      await navigator.share({ title: event.title, url }).catch(() => {})
+    } else {
+      await navigator.clipboard.writeText(url).catch(() => {})
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }, [event.title])
 
   return (
     <div
@@ -75,36 +86,40 @@ function EventCard({
           <p className="text-gray-500 text-xs">{event.host.name}</p>
         </div>
 
-        {status !== 'host' && (
-          <div className="flex gap-2 mt-3" onClick={e => e.stopPropagation()}>
-            <button onClick={onInterest}
-              className="flex-1 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium active:opacity-70">
-              ♡ 気になる
-            </button>
-            {status === 'none' && !filled && (
-              <button onClick={onApply}
-                className="flex-1 py-2 rounded-xl bg-amber-400 text-black text-xs font-semibold active:opacity-70">
-                参加申請
-              </button>
-            )}
-            {status === 'pending' && (
-              <button disabled className="flex-1 py-2 rounded-xl bg-gray-700 text-gray-500 text-xs">✓ 申請中</button>
-            )}
-            {status === 'approved' && (
-              <button className="flex-1 py-2 rounded-xl bg-green-500/20 text-green-400 text-xs font-medium">
-                💬 参加確定
-              </button>
-            )}
-          </div>
-        )}
-        {status === 'host' && (
-          <div className="mt-3" onClick={e => e.stopPropagation()}>
+        <div className="flex gap-2 mt-3 items-center" onClick={e => e.stopPropagation()}>
+          {status !== 'host' && (
+            <>
+              {status === 'none' && !filled && (
+                <button onClick={onApply}
+                  className="flex-1 py-2 rounded-xl bg-amber-400 text-black text-xs font-semibold active:opacity-70">
+                  参加申請
+                </button>
+              )}
+              {status === 'pending' && (
+                <button disabled className="flex-1 py-2 rounded-xl bg-gray-700 text-gray-500 text-xs">✓ 申請中</button>
+              )}
+              {status === 'approved' && (
+                <button className="flex-1 py-2 rounded-xl bg-green-500/20 text-green-400 text-xs font-medium">
+                  💬 参加確定
+                </button>
+              )}
+            </>
+          )}
+          {status === 'host' && (
             <button onClick={onSelect}
-              className="w-full py-2 rounded-xl bg-amber-400/10 text-amber-400 text-xs font-medium">
+              className="flex-1 py-2 rounded-xl bg-amber-400/10 text-amber-400 text-xs font-medium">
               ✏️ 主催中
             </button>
-          </div>
-        )}
+          )}
+          {/* シェアボタン */}
+          <button onClick={handleShare}
+            className="w-8 h-8 rounded-xl bg-gray-800 flex items-center justify-center text-gray-400 flex-shrink-0 active:opacity-70">
+            {copied
+              ? <svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><polyline points="20 6 9 17 4 12"/></svg>
+              : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            }
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -115,7 +130,6 @@ export default function EventListScreen({
   onSelectEvent,
   onCreate,
   onManageEvent,
-  onInterest,
   onApply,
   isVip,
   onNavigateToSettings,
@@ -124,7 +138,6 @@ export default function EventListScreen({
   onSelectEvent: (id: string) => void
   onCreate: () => void
   onManageEvent: (id: string) => void
-  onInterest: (id: string) => void
   onApply: (id: string, msg: string) => void
   isVip: boolean
   onNavigateToSettings: () => void
@@ -213,7 +226,6 @@ export default function EventListScreen({
                 event={ev}
                 onSelect={() => onManageEvent(ev.id)}
                 onApply={() => {}}
-                onInterest={() => {}}
               />
             ))
           )}
@@ -238,7 +250,6 @@ export default function EventListScreen({
                 event={ev}
                 onSelect={() => onSelectEvent(ev.id)}
                 onApply={() => onApply(ev.id, '')}
-                onInterest={() => onInterest(ev.id)}
               />
             ))
           )}
@@ -273,8 +284,7 @@ export default function EventListScreen({
                   event={ev}
                   onSelect={() => onSelectEvent(ev.id)}
                   onApply={() => onApply(ev.id, '')}
-                  onInterest={() => onInterest(ev.id)}
-                />
+                  />
               ))}
             </div>
           )}

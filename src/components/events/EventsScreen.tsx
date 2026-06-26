@@ -135,7 +135,6 @@ export default function EventsScreen({ isVip, onNavigateToSettings }: Props) {
       onSelectEvent={nav.toDetail}
       onCreate={nav.toCreate}
       onManageEvent={nav.toManageDetail}
-      onInterest={toggleInterest}
       onApply={applyToEvent}
       isVip={isVip}
       onNavigateToSettings={onNavigateToSettings}

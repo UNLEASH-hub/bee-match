@@ -36,12 +36,24 @@ export default function EventDetailScreen({
   const [showApplyModal, setShowApplyModal] = useState(false)
   const [showParticipants, setShowParticipants] = useState(false)
   const [interested, setInterested] = useState(false)
+  const [copied, setCopied] = useState(false)
   const status = getStatus(event)
   const filled = event.participants.length >= event.capacity
 
   function handleInterest() {
     setInterested(v => !v)
     onInterest()
+  }
+
+  async function handleShare() {
+    const url = window.location.href
+    if (navigator.share) {
+      await navigator.share({ title: event.title, url }).catch(() => {})
+    } else {
+      await navigator.clipboard.writeText(url).catch(() => {})
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
   }
 
   return (
@@ -52,6 +64,12 @@ export default function EventDetailScreen({
           <ChevronLeft />
         </button>
         <h1 className="text-white font-bold text-base flex-1 truncate">{event.title}</h1>
+        <button onClick={handleShare} className="w-9 h-9 flex items-center justify-center text-gray-400 active:opacity-70">
+          {copied
+            ? <svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><polyline points="20 6 9 17 4 12"/></svg>
+            : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          }
+        </button>
       </div>
 
       {/* スクロールコンテンツ */}
