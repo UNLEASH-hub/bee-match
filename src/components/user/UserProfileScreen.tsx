@@ -6,6 +6,7 @@ interface Props {
   onBack: () => void
   onMessage: () => void
   onShowOnMap: () => void
+  onFavoriteUser?: (user: User) => void
 }
 
 const sexualityLabel: Record<NonNullable<User['sexuality']>, string> = {
@@ -64,7 +65,7 @@ function MapPinIcon() {
   )
 }
 
-export default function UserProfileScreen({ user, onBack, onMessage, onShowOnMap }: Props) {
+export default function UserProfileScreen({ user, onBack, onMessage, onShowOnMap, onFavoriteUser }: Props) {
   const [photoIndex, setPhotoIndex] = useState(0)
   const [isFavorite, setIsFavorite] = useState(false)
   const [confirmFavorite, setConfirmFavorite] = useState(false)
@@ -218,7 +219,7 @@ export default function UserProfileScreen({ user, onBack, onMessage, onShowOnMap
                 キャンセル
               </button>
               <button
-                onClick={() => { setIsFavorite(true); setConfirmFavorite(false) }}
+                onClick={() => { setIsFavorite(true); setConfirmFavorite(false); onFavoriteUser?.(user) }}
                 className="flex-1 py-3 rounded-xl bg-amber-400 text-black text-sm font-semibold"
               >
                 登録する

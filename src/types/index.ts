@@ -14,7 +14,7 @@ export interface User {
   position?: 'tachi' | 'uke' | 'riba' | 'vanilla' | 'unknown'
   lookingFor?: ('friends' | 'romance' | 'other')[]
   phone?: string
-  locationMode?: 'gps' | 'arbitrary' | 'shouting'
+  locationMode?: 'shouting'
 }
 
 export interface Message {
@@ -44,6 +44,7 @@ export interface RegisterData {
   sexuality: string
   position: string
   lookingFor: string[]
+  invitationCode?: string
 }
 
 export interface Shout {

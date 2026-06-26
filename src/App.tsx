@@ -19,6 +19,7 @@ const defaultRegisterData: RegisterData = {
   sexuality: '',
   position: '',
   lookingFor: [],
+  invitationCode: '',
 }
 
 export default function App() {

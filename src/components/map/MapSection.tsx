@@ -8,9 +8,10 @@ type MapSubTab = 'map' | 'shout'
 
 interface Props {
   onNavigateToMessages?: (user: User) => void
+  onFavoriteUser?: (user: User) => void
 }
 
-export default function MapSection({ onNavigateToMessages }: Props) {
+export default function MapSection({ onNavigateToMessages, onFavoriteUser }: Props) {
   const [subTab, setSubTab] = useState<MapSubTab>('map')
   const [profileUser, setProfileUser] = useState<User | null>(null)
   const [flyToTarget, setFlyToTarget] = useState<{ lat: number; lng: number; zoom: number } | null>(null)
@@ -29,6 +30,7 @@ export default function MapSection({ onNavigateToMessages }: Props) {
           setFlyToTarget({ lat: profileUser.location.lat, lng: profileUser.location.lng, zoom: 16 })
           setProfileUser(null)
         }}
+        onFavoriteUser={onFavoriteUser}
       />
     )
   }

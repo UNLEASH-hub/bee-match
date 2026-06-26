@@ -79,18 +79,11 @@ export default function MapView({ onUserSelect, flyToTarget }: Props) {
   const [isPickingLocation, setIsPickingLocation] = useState(false)
   const [gpsError, setGpsError] = useState('')
   const [showVipSheet, setShowVipSheet] = useState(false)
-  const [selfLocationMode, setSelfLocationMode] = useState<'gps' | 'arbitrary' | undefined>(undefined)
   const [selectedEvent, setSelectedEvent] = useState<BeeEvent | null>(null)
   const [showFilterSheet, setShowFilterSheet] = useState(false)
-  const [eventFilter, setEventFilter] = useState<'today' | 'all'>('today')
   const [showShouting, setShowShouting] = useState(true)
-  const [showGpsOnly, setShowGpsOnly] = useState(false)
 
-  const activeFilterCount = [
-    eventFilter === 'all',
-    !showShouting,
-    showGpsOnly,
-  ].filter(Boolean).length
+  const activeFilterCount = [!showShouting].filter(Boolean).length
 
   useEffect(() => {
     if (flyToTarget) {
@@ -123,7 +116,6 @@ export default function MapView({ onUserSelect, flyToTarget }: Props) {
         const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude }
         setCurrentUserLocation(loc)
         setViewState(v => ({ ...v, latitude: loc.lat, longitude: loc.lng, zoom: 15 }))
-        setSelfLocationMode('gps')
         setShowLocationSheet(false)
         setGpsError('')
       },
@@ -141,7 +133,6 @@ export default function MapView({ onUserSelect, flyToTarget }: Props) {
 
   function handleConfirmPickedLocation() {
     setCurrentUserLocation({ lat: viewState.latitude, lng: viewState.longitude })
-    setSelfLocationMode('arbitrary')
     setIsPickingLocation(false)
   }
 
@@ -160,12 +151,11 @@ export default function MapView({ onUserSelect, flyToTarget }: Props) {
           longitude={currentUserLocation.lng}
           anchor="center"
         >
-          <UserMarker user={{ ...currentUser, locationMode: selfLocationMode }} isSelf />
+          <UserMarker user={currentUser} isSelf />
         </Marker>
 
         {/* 他ユーザーのマーカー */}
         {mockUsers.filter(user => {
-          if (showGpsOnly && user.locationMode !== 'gps') return false
           if (!showShouting && user.locationMode === 'shouting') return false
           return true
         }).map(user => (
@@ -184,15 +174,7 @@ export default function MapView({ onUserSelect, flyToTarget }: Props) {
         ))}
 
         {/* イベントマーカー */}
-        {mockEvents.filter(e => {
-          if (e.status === 'cancelled') return false
-          if (eventFilter === 'today') {
-            const d = new Date(e.startAt), now = new Date()
-            const end = new Date(now); end.setHours(23, 59, 59, 999)
-            return d >= now && d <= end
-          }
-          return true
-        }).map(ev => (
+        {mockEvents.filter(e => e.status !== 'cancelled').map(ev => (
           <Marker
             key={ev.id}
             latitude={ev.location.lat}
@@ -365,24 +347,6 @@ export default function MapView({ onUserSelect, flyToTarget }: Props) {
               <button onClick={() => setShowFilterSheet(false)} className="text-gray-500 text-xl w-8 h-8 flex items-center justify-center">✕</button>
             </div>
 
-            {/* イベント表示範囲 */}
-            <p className="text-gray-500 text-xs font-medium mb-3">📅 イベント表示範囲</p>
-            <div className="flex gap-2 mb-5">
-              {(['today', 'all'] as const).map(f => (
-                <button
-                  key={f}
-                  onClick={() => setEventFilter(f)}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-colors ${
-                    eventFilter === f
-                      ? 'bg-amber-400 text-black border-amber-400'
-                      : 'bg-gray-800 text-gray-300 border-gray-700'
-                  }`}
-                >
-                  {f === 'today' ? '今日のみ' : 'すべて表示'}
-                </button>
-              ))}
-            </div>
-
             {/* ユーザー表示フィルター */}
             <p className="text-gray-500 text-xs font-medium mb-3">👤 ユーザー表示</p>
             <div className="flex flex-col gap-2 mb-6">
@@ -402,28 +366,11 @@ export default function MapView({ onUserSelect, flyToTarget }: Props) {
                 </button>
               </label>
 
-              <label className="flex items-center justify-between px-4 py-3 bg-gray-800 rounded-xl cursor-pointer">
-                <div className="flex items-center gap-3">
-                  <span className="text-lg">📡</span>
-                  <div>
-                    <p className="text-white text-sm font-medium">リアル位置のみ</p>
-                    <p className="text-gray-500 text-xs">GPS で現在地を共有中のユーザーのみ</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowGpsOnly(v => !v)}
-                  className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${showGpsOnly ? 'bg-amber-400' : 'bg-gray-600'}`}
-                >
-                  <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${showGpsOnly ? 'left-6' : 'left-0.5'}`} />
-                </button>
-              </label>
             </div>
 
             <button
               onClick={() => {
-                setEventFilter('today')
                 setShowShouting(true)
-                setShowGpsOnly(false)
               }}
               className="w-full py-2.5 rounded-xl bg-gray-800 text-gray-400 text-sm"
             >

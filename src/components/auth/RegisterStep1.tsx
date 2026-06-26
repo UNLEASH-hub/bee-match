@@ -31,6 +31,7 @@ export default function RegisterStep1({ data, onChange, onNext, onBack }: Props)
   const [month, setMonth] = useState('')
   const [day, setDay] = useState('')
   const [ageCheck, setAgeCheck] = useState(false)
+  const [invitationCode, setInvitationCode] = useState(data.invitationCode ?? '')
   const [error, setError] = useState('')
 
   function handleNext() {
@@ -45,7 +46,7 @@ export default function RegisterStep1({ data, onChange, onNext, onBack }: Props)
     if (age === null || age < 18) return setError('18歳以上の方のみご利用いただけます')
     if (!ageCheck) return setError('「18歳以上です」にチェックを入れてください')
 
-    onChange({ email, password, birthday })
+    onChange({ email, password, birthday, invitationCode })
     onNext()
   }
 
@@ -135,6 +136,20 @@ export default function RegisterStep1({ data, onChange, onNext, onBack }: Props)
             </div>
             <span className="text-gray-300 text-sm">私は18歳以上です</span>
           </label>
+
+          {/* 招待コード（任意） */}
+          <div>
+            <label className="block text-gray-400 text-sm mb-1">
+              招待コード <span className="text-gray-600 text-xs">（任意）</span>
+            </label>
+            <input
+              type="text"
+              value={invitationCode}
+              onChange={e => setInvitationCode(e.target.value)}
+              placeholder="招待コードをお持ちの方は入力してください"
+              className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-3 text-sm outline-none focus:border-amber-400 transition-colors placeholder-gray-600"
+            />
+          </div>
 
           {error && (
             <p className="text-red-400 text-sm bg-red-400/10 rounded-xl px-4 py-3">{error}</p>
