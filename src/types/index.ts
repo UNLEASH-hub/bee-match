@@ -77,7 +77,7 @@ export type Tab = 'notifications' | 'events' | 'map' | 'messages' | 'settings'
 // ── イベント機能 ──────────────────────────────────────────
 
 export type EventCategory = 'drinking' | 'cafe' | 'meal' | 'play' | 'activity' | 'night'
-export type ApprovalMode = 'open' | 'approval' | 'invite'
+export type ApprovalMode = 'open' | 'approval'
 export type ApplicationStatus = 'pending' | 'approved' | 'rejected' | 'cancelled'
 export type EventStatus = 'draft' | 'published' | 'ended' | 'cancelled'
 

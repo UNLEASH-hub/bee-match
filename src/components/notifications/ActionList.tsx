@@ -24,19 +24,16 @@ export default function ActionList({ isVip = false }: { isVip?: boolean }) {
         return (
           <button
             key={notif.id}
-            className="w-full flex items-center gap-0 border-b border-gray-800 active:bg-gray-900 transition-colors text-left"
+            className={`w-full flex items-center border-b border-gray-800 transition-colors text-left ${notif.read ? 'opacity-50' : 'bg-gray-900 active:bg-gray-800'}`}
           >
-            {/* 未読インジケーター */}
-            <div className={`w-1 self-stretch flex-shrink-0 rounded-r ${notif.read ? 'bg-transparent' : 'bg-amber-400'}`} />
-
-            <div className="flex items-center gap-4 px-4 py-4 flex-1 min-w-0">
+            <div className="flex items-center gap-4 px-4 py-5 flex-1 min-w-0">
               {/* アバター + タイプバッジ */}
               <div className="relative flex-shrink-0">
                 <img
                   src={u.avatarUrl}
                   alt={isHidden ? '?' : u.name}
-                  className="w-13 h-13 rounded-full object-cover"
-                  style={{ width: 52, height: 52, filter: isHidden ? 'blur(8px)' : 'none' }}
+                  className="w-14 h-14 rounded-full object-cover"
+                  style={{ width: 56, height: 56, filter: isHidden ? 'blur(8px)' : 'none' }}
                 />
                 <span
                   className={`absolute -bottom-0.5 -right-0.5 w-5 h-5 ${cfg.badge} rounded-full flex items-center justify-center text-[10px] border-2 border-gray-950`}

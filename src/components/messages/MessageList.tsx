@@ -24,7 +24,7 @@ export default function MessageList({ onOpen }: Props) {
             <button
               key={conv.id}
               onClick={() => onOpen(conv)}
-              className="w-full flex items-center gap-4 px-4 py-4 border-b border-gray-800 active:bg-gray-900 transition-colors text-left"
+              className="w-full flex items-center gap-4 px-4 py-5 border-b border-gray-800 active:bg-gray-900 transition-colors text-left"
             >
               {/* アバター + 未読バッジ */}
               <div className="relative flex-shrink-0">

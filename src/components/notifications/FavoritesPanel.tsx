@@ -19,7 +19,7 @@ export default function FavoritesPanel({ users, onMessage }: Props) {
   return (
     <div className="flex-1 overflow-y-auto">
       {users.map(u => (
-        <div key={u.id} className="flex items-center gap-4 px-4 py-4 border-b border-gray-800">
+        <div key={u.id} className="flex items-center gap-4 px-4 py-5 border-b border-gray-800">
           <img
             src={u.avatarUrl}
             alt={u.name}

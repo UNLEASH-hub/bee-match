@@ -8,7 +8,7 @@ type SubTab = 'from' | 'to'
 function FootprintCard({ entry }: { entry: FootprintEntry }) {
   const u = entry.user
   return (
-    <button className="w-full flex items-center gap-4 px-4 py-4 border-b border-gray-800 active:bg-gray-900 transition-colors text-left">
+    <button className="w-full flex items-center gap-4 px-4 py-5 border-b border-gray-800 active:bg-gray-900 transition-colors text-left">
       <div className="relative flex-shrink-0">
         <img
           src={u.avatarUrl}

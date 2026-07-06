@@ -157,7 +157,7 @@ export default function EventListScreen({
   }
 
   const tabs: { key: Period; label: string }[] = [
-    { key: 'list', label: '一覧' },
+    { key: 'list', label: '付近のイベント' },
     { key: 'mine', label: 'マイイベント' },
   ]
 
@@ -368,7 +368,7 @@ export default function EventListScreen({
                 />
                 <div>
                   <p className="text-white text-sm font-medium">マップへの表示について理解しました</p>
-                  <p className="text-gray-500 text-xs mt-0.5">位置情報は多少ズレる場合がありますが、イベントがマップ上に表示されます</p>
+                  <p className="text-gray-500 text-xs mt-0.5">位置情報は多少ズレる場合がありますが、現在位置のマップ上にイベントが設置・表示されます</p>
                 </div>
               </label>
             </div>
