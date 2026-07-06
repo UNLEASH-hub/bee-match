@@ -16,8 +16,9 @@ function ChevronLeft() {
 function getStatus(ev: BeeEvent) {
   if (ev.host.id === currentUser.id) return 'host'
   const app = ev.applications.find(a => a.applicant.id === currentUser.id)
-  if (!app) return 'none'
-  return app.status
+  if (app) return app.status
+  if (ev.participants.some(p => p.id === currentUser.id)) return 'approved'
+  return 'none'
 }
 
 export default function EventDetailScreen({
@@ -145,15 +146,6 @@ export default function EventDetailScreen({
             )}
           </div>
 
-          {/* 参加条件バッジ */}
-          {event.conditions.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {event.conditions.map(c => (
-                <span key={c} className="bg-gray-800 text-amber-400 text-xs px-3 py-1.5 rounded-full">✓ {c}</span>
-              ))}
-            </div>
-          )}
-
           {/* 主催者 */}
           <div>
             <p className="text-gray-500 text-xs font-medium mb-2">主催者</p>
@@ -173,30 +165,29 @@ export default function EventDetailScreen({
             <p className="text-gray-300 text-sm leading-relaxed">{event.description}</p>
           </div>
 
-          {/* 参加条件 */}
-          {(event.ageMin || event.ageMax || event.conditions.length > 0) && (
-            <div>
-              <p className="text-gray-500 text-xs font-medium mb-2">参加条件</p>
-              <div className="flex flex-col gap-1.5">
-                {(event.ageMin || event.ageMax) && (
-                  <p className="text-gray-300 text-sm">
-                    年齢: {event.ageMin ?? 20}〜{event.ageMax ?? 99}歳
-                  </p>
-                )}
-                {event.conditions.map(c => (
-                  <p key={c} className="text-gray-300 text-sm">✓ {c}</p>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* 住所 */}
+          <div>
+            <p className="text-gray-500 text-xs font-medium mb-2">住所</p>
+            {(status === 'host' || status === 'approved' || event.approvalMode === 'open') ? (
+              <p className="text-gray-300 text-sm">
+                {event.location.address || '住所未登録'}
+              </p>
+            ) : (
+              <p className="text-amber-400/80 text-sm">🔒 参加承認後に表示されます</p>
+            )}
+          </div>
 
-          {/* 注意事項 */}
-          {event.notes && (
-            <div>
-              <p className="text-gray-500 text-xs font-medium mb-2">持ち物・注意事項</p>
-              <p className="text-gray-300 text-sm leading-relaxed">{event.notes}</p>
-            </div>
-          )}
+          {/* 持ち物・注意事項・備考 */}
+          <div>
+            <p className="text-gray-500 text-xs font-medium mb-2">持ち物・注意事項・備考</p>
+            {(status === 'host' || status === 'approved' || event.approvalMode === 'open') ? (
+              <p className="text-gray-300 text-sm leading-relaxed">
+                {event.notes || '記載なし'}
+              </p>
+            ) : (
+              <p className="text-amber-400/80 text-sm">🔒 参加承認後に表示されます</p>
+            )}
+          </div>
         </div>
       </div>
 
@@ -263,7 +254,7 @@ export default function EventDetailScreen({
           onClick={() => setShowParticipants(false)}
         >
           <div
-            className="w-full bg-gray-900 rounded-t-2xl px-5 py-6 max-h-[70vh] overflow-y-auto"
+            className="w-full max-w-[430px] mx-auto bg-gray-900 rounded-t-2xl px-5 py-6 max-h-[70vh] overflow-y-auto"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">

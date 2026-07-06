@@ -30,6 +30,15 @@ const appsForEvt1: EventApplication[] = [
   },
 ]
 
+// evt-9 の申請（hiro が主催、currentUser が承認済みのデモ）
+const appsForEvt9: EventApplication[] = [
+  {
+    id: 'app-9', eventId: 'evt-9', applicant: currentUser,
+    message: 'ぜひ参加させてください！', status: 'approved',
+    appliedAt: ago(48),
+  },
+]
+
 export const mockEvents: BeeEvent[] = [
   // ── 今夜 ──────────────────────────────────────────────
   {
@@ -94,6 +103,27 @@ export const mockEvents: BeeEvent[] = [
     createdAt: ago(12),
   },
   // ── 今週 ──────────────────────────────────────────────
+  {
+    id: 'evt-9',
+    category: 'drinking',
+    title: '池袋クラフトビール会🍺',
+    description: '池袋のクラフトビール専門店で少人数で飲み会です。ビール好きな方、ゆっくり話せる方大歓迎。気軽にどうぞ！',
+    location: { type: 'venue', name: 'Craft Beer Stand 池袋', address: '東京都豊島区西池袋1-5-3', lat: 35.7302, lng: 139.7110 },
+    startAt: d(3), endAt: new Date(new Date(d(3)).getTime() + 3 * 3_600_000).toISOString(),
+    capacity: 5,
+    host: hiro,
+    approvalMode: 'approval',
+    conditions: ['お酒OK'],
+    tags: ['#クラフトビール', '#少人数'],
+    coverImage: 'https://picsum.photos/seed/evt9/800/400',
+    notes: '集合は池袋駅東口の時計前に19時集合です。お店は地下1階にあります。当日はカジュアルな服装でOK。身分証をお忘れなく。',
+    status: 'published',
+    interestedCount: 4,
+    participants: [hiro, currentUser],
+    applications: appsForEvt9,
+    visibility: 'public',
+    createdAt: ago(72),
+  },
   {
     id: 'evt-4',
     category: 'meal',

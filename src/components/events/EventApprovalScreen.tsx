@@ -122,7 +122,7 @@ export default function EventApprovalScreen({
       {showRejectModal && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-end"
           onClick={() => setShowRejectModal(false)}>
-          <div className="w-full bg-gray-900 rounded-t-2xl px-5 py-6"
+          <div className="w-full max-w-[430px] mx-auto bg-gray-900 rounded-t-2xl px-5 py-6"
             onClick={e => e.stopPropagation()}>
             <h3 className="text-white font-bold text-base mb-4">申請を拒否</h3>
             <p className="text-gray-500 text-xs mb-2">拒否理由（申請者に送信）</p>

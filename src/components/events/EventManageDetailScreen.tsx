@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { BeeEvent, EventApplication } from '../../types'
+import type { BeeEvent, EventApplication, User } from '../../types'
 
 interface Props {
   event: BeeEvent
@@ -7,6 +7,7 @@ interface Props {
   onCancel: () => void
   onApprove: (appId: string) => void
   onReject: (appId: string) => void
+  onProfileSelect?: (user: User) => void
 }
 
 function ChevronLeft() {
@@ -23,7 +24,7 @@ type ConfirmAction =
   | { type: 'cancel' }
   | null
 
-export default function EventManageDetailScreen({ event, onBack, onCancel, onApprove, onReject }: Props) {
+export default function EventManageDetailScreen({ event, onBack, onCancel, onApprove, onReject, onProfileSelect }: Props) {
   const [confirm, setConfirm] = useState<ConfirmAction>(null)
 
   const pending = event.applications.filter(a => a.status === 'pending')
@@ -52,7 +53,6 @@ export default function EventManageDetailScreen({ event, onBack, onCancel, onApp
           {[
             { label: '参加', value: event.participants.length, max: event.capacity },
             { label: '申請', value: event.applications.filter(a => a.status === 'pending').length },
-            { label: '気になる', value: event.interestedCount },
           ].map(stat => (
             <div key={stat.label} className="flex flex-col items-center">
               <p className="text-white font-bold text-xl">
@@ -75,13 +75,12 @@ export default function EventManageDetailScreen({ event, onBack, onCancel, onApp
           <div className="flex flex-col">
             {pending.map(app => (
               <div key={app.id} className="flex items-start gap-3 px-4 py-3 border-b border-gray-800">
-                <img src={app.applicant.avatarUrl} alt={app.applicant.name}
-                  className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+                <button onClick={() => onProfileSelect?.(app.applicant)} className="flex-shrink-0 active:opacity-70">
+                  <img src={app.applicant.avatarUrl} alt={app.applicant.name}
+                    className="w-10 h-10 rounded-full object-cover" />
+                </button>
                 <div className="flex-1 min-w-0">
                   <p className="text-white text-sm font-medium">{app.applicant.name}（{app.applicant.age}歳）</p>
-                  {app.message && (
-                    <p className="text-gray-500 text-xs mt-0.5 line-clamp-1">{app.message}</p>
-                  )}
                 </div>
                 <div className="flex gap-2 flex-shrink-0">
                   <button
@@ -132,9 +131,9 @@ export default function EventManageDetailScreen({ event, onBack, onCancel, onApp
 
       {/* 確認ダイアログ */}
       {confirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-8"
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
           onClick={() => setConfirm(null)}>
-          <div className="w-full bg-gray-900 border border-gray-700 rounded-2xl p-6 flex flex-col gap-5"
+          <div className="w-full max-w-[390px] mx-4 bg-gray-900 border border-gray-700 rounded-2xl p-6 flex flex-col gap-5"
             onClick={e => e.stopPropagation()}>
             <p className="text-white font-semibold text-base text-center">
               {confirm.type === 'approve' && `${confirm.app.applicant.name}さんを承認しますか？`}

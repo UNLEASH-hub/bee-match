@@ -1,17 +1,19 @@
 import { useState } from 'react'
-import type { BeeEvent, EventApplication } from '../../types'
+import type { BeeEvent, EventApplication, User } from '../../types'
 import { mockEvents } from '../../data/mockEvents'
 import { currentUser } from '../../data/mockUsers'
 import EventListScreen from './EventListScreen'
 import EventDetailScreen from './EventDetailScreen'
 import EventCreateScreen from './EventCreateScreen'
 import EventManageDetailScreen from './EventManageDetailScreen'
+import UserProfileScreen from '../user/UserProfileScreen'
 
 type SubScreen =
   | { type: 'list' }
   | { type: 'detail'; eventId: string }
   | { type: 'create' }
   | { type: 'manage-detail'; eventId: string }
+  | { type: 'profile'; user: User; fromEventId: string }
 
 interface Props {
   isVip: boolean
@@ -125,6 +127,18 @@ export default function EventsScreen({ isVip, onNavigateToSettings }: Props) {
         onCancel={() => { cancelEvent(ev.id); nav.toList() }}
         onApprove={(appId) => approveApplication(ev.id, appId)}
         onReject={(appId) => rejectApplication(ev.id, appId)}
+        onProfileSelect={(user) => setSub({ type: 'profile', user, fromEventId: ev.id })}
+      />
+    )
+  }
+
+  if (sub.type === 'profile') {
+    return (
+      <UserProfileScreen
+        user={sub.user}
+        onBack={() => setSub({ type: 'manage-detail', eventId: sub.fromEventId })}
+        onMessage={() => {}}
+        onShowOnMap={() => {}}
       />
     )
   }

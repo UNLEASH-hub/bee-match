@@ -25,8 +25,8 @@ export default function EventApplicationModal({
 
   if (submitted) {
     return (
-      <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center px-8">
-        <div className="w-full bg-gray-900 border border-gray-700 rounded-2xl p-8 flex flex-col items-center gap-4 text-center">
+      <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
+        <div className="w-full max-w-[390px] mx-4 bg-gray-900 border border-gray-700 rounded-2xl p-8 flex flex-col items-center gap-4 text-center">
           <span className="text-5xl">✅</span>
           <h3 className="text-white font-bold text-lg">申請しました！</h3>
           <p className="text-gray-400 text-sm leading-relaxed">
@@ -49,7 +49,7 @@ export default function EventApplicationModal({
       onClick={onClose}
     >
       <div
-        className="w-full bg-gray-900 rounded-t-2xl px-5 py-6"
+        className="w-full max-w-[430px] mx-auto bg-gray-900 rounded-t-2xl px-5 py-6"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">

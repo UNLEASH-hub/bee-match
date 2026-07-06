@@ -19,8 +19,9 @@ type Period = 'list' | 'mine'
 function getParticipantStatus(ev: BeeEvent) {
   if (ev.host.id === currentUser.id) return 'host'
   const app = ev.applications.find(a => a.applicant.id === currentUser.id)
-  if (!app) return 'none'
-  return app.status
+  if (app) return app.status
+  if (ev.participants.some(p => p.id === currentUser.id)) return 'approved'
+  return 'none'
 }
 
 function EventCard({

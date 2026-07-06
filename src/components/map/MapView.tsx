@@ -49,6 +49,16 @@ function EyeIcon() {
   )
 }
 
+function MegaphoneIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+      <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+    </svg>
+  )
+}
+
 function LocationEditIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
@@ -82,6 +92,8 @@ export default function MapView({ onUserSelect, flyToTarget }: Props) {
   const [selectedEvent, setSelectedEvent] = useState<BeeEvent | null>(null)
   const [showFilterSheet, setShowFilterSheet] = useState(false)
   const [showShouting, setShowShouting] = useState(true)
+  const [showShoutModal, setShowShoutModal] = useState(false)
+  const [shoutMessage, setShoutMessage] = useState('')
 
   const activeFilterCount = [!showShouting].filter(Boolean).length
 
@@ -196,7 +208,7 @@ export default function MapView({ onUserSelect, flyToTarget }: Props) {
       </Map>
 
       {/* 右側コントロールボタン */}
-      <div className="absolute right-4 bottom-28 flex flex-col gap-3 z-10">
+      <div className="absolute right-4 bottom-24 flex flex-col gap-3 z-10">
         <button
           onClick={() => setShowVipSheet(true)}
           className="w-11 h-11 bg-gray-900/90 border border-gray-700 rounded-full flex items-center justify-center text-gray-300 shadow-lg active:opacity-70"
@@ -220,36 +232,14 @@ export default function MapView({ onUserSelect, flyToTarget }: Props) {
         </button>
       </div>
 
-      {/* 下部: 近くのユーザーストリップ */}
-      <div className="absolute bottom-4 left-0 right-0 px-4 z-10">
-        <div className="flex items-center">
-          <div className="flex">
-            {mockUsers.slice(0, 5).map((user, i) => (
-              <button
-                key={user.id}
-                onClick={() => onUserSelect?.(user)}
-                style={{ marginLeft: i === 0 ? 0 : -10, zIndex: 5 - i }}
-                className="relative w-10 h-10 rounded-full border-2 border-gray-900 overflow-hidden flex-shrink-0"
-              >
-                <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
-              </button>
-            ))}
-          </div>
-          {mockUsers.length > 5 && (
-            <div
-              className="w-10 h-10 rounded-full bg-gray-800 border-2 border-gray-900 flex items-center justify-center text-gray-300 text-xs font-medium flex-shrink-0"
-              style={{ marginLeft: -10 }}
-            >
-              +{mockUsers.length - 5}
-            </div>
-          )}
-          <div className="ml-3 bg-gray-900/90 border border-gray-700 rounded-full px-3 py-1.5 flex-shrink-0">
-            <span className="text-gray-300 text-xs font-medium">
-              {mockUsers.filter(u => u.isOnline).length}人オンライン
-            </span>
-          </div>
-        </div>
-      </div>
+      {/* シャウトFAB */}
+      <button
+        onClick={() => setShowShoutModal(true)}
+        className="absolute right-4 bottom-6 z-20 w-14 h-14 bg-amber-400 rounded-full flex items-center justify-center text-black shadow-lg active:scale-95 transition-transform"
+        aria-label="シャウトする"
+      >
+        <MegaphoneIcon />
+      </button>
 
       {/* フィルターボタン */}
       <button
@@ -378,6 +368,48 @@ export default function MapView({ onUserSelect, flyToTarget }: Props) {
             </button>
           </div>
         </>
+      )}
+
+      {/* シャウト投稿モーダル */}
+      {showShoutModal && (
+        <div
+          className="absolute inset-0 z-30 bg-black/60 flex items-end"
+          onClick={() => setShowShoutModal(false)}
+        >
+          <div
+            className="w-full bg-gray-900 rounded-t-2xl p-5 pb-8"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-white font-bold text-base">シャウトする</h2>
+              <button
+                onClick={() => setShowShoutModal(false)}
+                className="text-gray-500 text-xl leading-none w-8 h-8 flex items-center justify-center rounded-full active:bg-gray-800"
+              >
+                ✕
+              </button>
+            </div>
+            <textarea
+              value={shoutMessage}
+              onChange={e => setShoutMessage(e.target.value)}
+              placeholder="周りの人に伝えたいことを叫ぼう！"
+              rows={4}
+              maxLength={200}
+              className="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors resize-none placeholder-gray-500"
+            />
+            <div className="text-right text-gray-600 text-xs mt-1 mb-4">
+              {shoutMessage.length} / 200
+            </div>
+            <button
+              onClick={() => { setShoutMessage(''); setShowShoutModal(false) }}
+              disabled={!shoutMessage.trim()}
+              className="w-full bg-amber-400 text-black font-bold rounded-xl py-3 text-sm flex items-center justify-center gap-2 disabled:opacity-40 active:opacity-80 transition-opacity"
+            >
+              <MegaphoneIcon />
+              叫ぶ！
+            </button>
+          </div>
+        </div>
       )}
 
       {/* VIP 誘導ポップアップ */}
